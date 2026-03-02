@@ -13,6 +13,14 @@ spec:
       labels:
         app: frontend
     spec:
+      # ── Pod Security Standards ─────────────────────────────────────────────
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: frontend
           image: frontend:latest
@@ -22,4 +30,18 @@ spec:
           envFrom:
             - configMapRef:
                 name: app-config
+          # ── Container Security Context ───────────────────────────────────
+          securityContext:
+            allowPrivilegeEscalation: false   # Disable privilege escalation
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL                         # Drop all Linux capabilities
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
       restartPolicy: Always

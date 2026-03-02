@@ -1,0 +1,113 @@
+---
+# NetworkPolicy: Deny all ingress and egress by default (zero-trust baseline)
+# Enforces cross-namespace traffic restriction
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: expense-tracker
+spec:
+  podSelector: {}       # applies to ALL pods in the namespace
+  policyTypes:
+    - Ingress
+    - Egress
+---
+# NetworkPolicy: Allow frontend to receive traffic from the outside (via Service)
+# and allow frontend to call backend within the namespace only
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: frontend-policy
+  namespace: expense-tracker
+spec:
+  podSelector:
+    matchLabels:
+      app: frontend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - {}                # Allow all ingress (from NodePort / LoadBalancer)
+  egress:
+    # Allow frontend → backend (same namespace only — restricts cross-namespace traffic)
+    - to:
+        - podSelector:
+            matchLabels:
+              app: backend
+      ports:
+        - protocol: TCP
+          port: 5000
+    # Allow DNS resolution
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+# NetworkPolicy: Allow backend to receive only from frontend and call postgres
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-policy
+  namespace: expense-tracker
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Only accept traffic from frontend pods — restricts cross-namespace traffic
+    - from:
+        - podSelector:
+            matchLabels:
+              app: frontend
+      ports:
+        - protocol: TCP
+          port: 5000
+  egress:
+    # Allow backend → postgres only
+    - to:
+        - podSelector:
+            matchLabels:
+              app: postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Allow DNS resolution
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+---
+# NetworkPolicy: Allow postgres to receive only from backend
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgres-policy
+  namespace: expense-tracker
+spec:
+  podSelector:
+    matchLabels:
+      app: postgres
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Only accept from backend — restricts cross-namespace traffic
+    - from:
+        - podSelector:
+            matchLabels:
+              app: backend
+      ports:
+        - protocol: TCP
+          port: 5432
+  egress:
+    # Allow DNS only
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53

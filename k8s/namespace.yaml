@@ -1,4 +1,16 @@
+---
+# Pod Security Standards enforcement at namespace level
+# Restricts all pods in the namespace to the 'restricted' policy profile
+# This enforces: no privilege escalation, no root, seccomp, dropped capabilities
 apiVersion: v1
 kind: Namespace
 metadata:
   name: expense-tracker
+  labels:
+    # Enforce Pod Security Standards — 'restricted' is the most secure level
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest
