@@ -1,0 +1,113 @@
+name: tfsec IaC Security Scan
+
+# Scans Terraform code for misconfigurations using tfsec
+# Covers both AWS and Azure infrastructure
+
+on:
+  push:
+    branches: [ "main", "master", "develop" ]
+    paths:
+      - "terraform/**"
+  pull_request:
+    branches: [ "main", "master", "develop" ]
+    paths:
+      - "terraform/**"
+
+jobs:
+  # ── AWS Terraform ─────────────────────────────────────────────────────────
+  tfsec-aws:
+    name: tfsec — AWS Terraform
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run tfsec on AWS Terraform
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          working_directory: terraform/aws
+          format: sarif
+          soft_fail: true           # don't block PR; let Security tab surface findings
+          additional_args: >
+            --exclude-downloaded-modules
+            --minimum-severity MEDIUM
+
+      - name: Upload AWS SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: results.sarif
+          category: tfsec-aws
+
+      - name: Save AWS SARIF artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tfsec-aws-sarif
+          path: results.sarif
+
+  # ── Azure Terraform ────────────────────────────────────────────────────────
+  tfsec-azure:
+    name: tfsec — Azure Terraform
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run tfsec on Azure Terraform
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          working_directory: terraform/azure
+          format: sarif
+          soft_fail: true
+          additional_args: >
+            --exclude-downloaded-modules
+            --minimum-severity MEDIUM
+
+      - name: Upload Azure SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: results.sarif
+          category: tfsec-azure
+
+      - name: Save Azure SARIF artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tfsec-azure-sarif
+          path: results.sarif
+
+  # ── Summary ────────────────────────────────────────────────────────────────
+  tfsec-summary:
+    name: tfsec Summary
+    runs-on: ubuntu-latest
+    needs: [ tfsec-aws, tfsec-azure ]
+    if: always()
+
+    steps:
+      - name: Write job summary
+        run: |
+          echo "## 🔐 tfsec IaC Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Terraform Config | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| AWS (EKS, RDS, VPC, ALB, ECR) | ${{ needs.tfsec-aws.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Azure (AKS, PostgreSQL, VNet, ACR) | ${{ needs.tfsec-azure.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Categories Checked" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Encryption at rest and in transit" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Logging and monitoring enabled" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Public access restrictions" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ IAM/RBAC security misconfigurations" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Database and storage security" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> 📁 Full SARIF reports uploaded to **GitHub Security → Code scanning alerts**" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,91 @@
+name: SonarQube Static Code Analysis
+
+on:
+  push:
+    branches: [ "main", "master", "develop" ]
+  pull_request:
+    branches: [ "main", "master", "develop" ]
+
+jobs:
+  sonarqube-analysis:
+    name: SonarQube Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # Required for SonarQube blame & history tracking
+
+      # ── Python / Backend setup ──────────────────────────────────────────────
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          # Install security-focused test tools so coverage includes security paths
+          pip install bandit safety pytest pytest-cov
+
+      - name: Run Bandit (SAST – Python)
+        # Detects: hardcoded secrets, injection, weak crypto, insecure deserialization,
+        #          poor error handling in Python code
+        run: |
+          bandit -r backend/ \
+            -f json \
+            -o bandit-report.json \
+            --tests B105,B106,B107,B108,B301,B302,B303,B304,B311,B324,B501,B601,B602,B703 \
+            || true   # Don't fail CI – let SonarQube gate decide
+          echo "Bandit scan complete"
+
+      - name: Run Safety (dependency vulnerability check)
+        run: |
+          safety check -r backend/requirements.txt --json > safety-report.json || true
+          echo "Safety check complete"
+
+      # ── Node / Frontend setup ───────────────────────────────────────────────
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      # ── SonarQube Scan ──────────────────────────────────────────────────────
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.projectKey=expense-tracker
+            -Dsonar.projectName="Expense Tracker App"
+            -Dsonar.sources=backend,frontend/src
+            -Dsonar.exclusions=**/node_modules/**,**/venv/**,**/__pycache__/**,**/migrations/**
+            -Dsonar.python.version=3.9
+            -Dsonar.python.bandit.reportPaths=bandit-report.json
+            -Dsonar.externalIssuesReportPaths=bandit-report.json
+            -Dsonar.security.hotspots.inheritFromParent=true
+            -Dsonar.qualitygate.wait=true
+
+      # ── Upload artefacts for review ─────────────────────────────────────────
+      - name: Upload Bandit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit-report.json
+
+      - name: Upload Safety report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: safety-report
+          path: safety-report.json
