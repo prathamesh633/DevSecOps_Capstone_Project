@@ -1,151 +1,72 @@
-# 💸 Expense Tracker
+# DevSecOps Capstone Project: Expense Tracker
 
-A full-stack personal finance application to track income and expenses, built with **React**, **Flask**, and **SQLite**.
+Welcome to the DevSecOps Capstone Project! This repository houses a full-stack personal finance application (Expense Tracker) integrated with a comprehensive, industry-standard DevSecOps pipeline.
 
----
+## Project Overview
 
-## 📸 Screenshots
+The core objective of this project is to demonstrate a robust, secure, and automated software development lifecycle (SDLC) using modern DevOps and Security (DevSecOps) practices. We are taking a web application (React frontend, Python Flask backend) and enveloping it in a fully automated infrastructure and CI/CD environment.
 
-### 🔐 Login
-![Login Page](screenshots/login.png)
+### Key DevSecOps Components:
 
-### 📝 Register
-![Register Page](screenshots/register.png)
+- **Infrastructure as Code (IaC):** Automated provisioning of cloud environments on AWS/Azure using **Terraform**.
+- **CI/CD Pipelines:** Automated workflows using **GitHub Actions** for building, testing, scanning, and deploying both infrastructure and application code.
+- **Security Scanning & Compliance:**
+  - **SAST (Static Application Security Testing):** Code quality and security checks using **SonarQube**.
+  - **SCA (Software Composition Analysis):** Dependency and open-source vulnerability scanning using **Snyk**.
+  - **IaC Security:** Scanning Terraform configurations for misconfigurations and compliance violations using **Checkov** and **tfsec**.
+  - **Container & K8s Security:** Scanning Docker images and Kubernetes manifests using **Trivy**.
+- **Containerization & Orchestration:** Packaging the application using **Docker** and deploying it to a **Kubernetes** cluster, fortified with Network Policies and Pod Security Standards.
 
-### 📊 Dashboard
-![Dashboard](screenshots/dashboard.png)
+## 🏗️ Architecture & CI/CD Pipeline Flow
 
-### ➕ Add Transaction
-![Add Transaction](screenshots/add_transaction.png)
+![DevSecOps Architecture](architecture_new.png)
 
-### 📈 Dashboard with Data
-![Dashboard with Transactions](screenshots/dashboard_with_data.png)
+## 📁 Repository Structure
 
----
-
-## 🏗️ Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 19, Bootstrap 5, Axios |
-| Backend | Python Flask, Flask-JWT-Extended, SQLAlchemy |
-| Database | SQLite (dev) / PostgreSQL (prod) |
-| Auth | JWT (JSON Web Tokens) |
-
----
-
-## 🗂️ Project Structure
-
-```
+```text
 expense-tracker/
-├── backend/
-│   ├── app.py             # Flask app factory
-│   ├── config.py          # Config (env vars)
-│   ├── models.py          # User & Transaction models
-│   ├── routes/
-│   │   ├── auth.py        # Register & Login APIs
-│   │   └── transactions.py# CRUD + Summary APIs
-│   ├── requirements.txt
-│   └── .env
-├── frontend/
-│   ├── public/
-│   │   └── index.html     # Bootstrap 5 CDN included
-│   └── src/
-│       ├── App.js         # Router + Navbar
-│       ├── api.js         # Axios instance with JWT interceptor
-│       ├── context/
-│       │   └── AuthContext.js
-│       └── pages/
-│           ├── Login.js
-│           ├── Register.js
-│           ├── Dashboard.js   # Summary cards + transaction table
-│           └── AddTransaction.js
-└── screenshots/
+├── .github/
+│   └── workflows/          # GitHub Actions CI/CD pipelines
+│       ├── sonarqube.yml   # SAST Code Quality scan (SonarQube)
+│       ├── snyk-sca.yml    # SCA Dependency scan (Snyk)
+│       ├── checkov.yml     # IaC Security scan (Checkov)
+│       ├── tfsec.yml       # IaC Security scan (tfsec)
+│       ├── trivy.yml       # Container & K8s vulnerability scan
+│       ├── codeql.yml      # Advanced static code analysis
+│       ├── deploy-infra.yml# Terraform provision to AWS/Azure
+│       └── destroy-infra.yml# Terraform destroy environment
+├── backend/                # Python Flask REST API
+│   ├── app.py              # Application entrypoint
+│   ├── models/             # Database models
+│   ├── routes/             # API endpoints
+│   ├── requirements.txt    # Python dependencies
+│   └── Dockerfile          # Container build definition
+├── frontend/               # React User Interface
+│   ├── src/                # UI components and API clients
+│   ├── package.json        # Node.js dependencies
+│   └── Dockerfile          # Container build definition
+├── k8s/                    # Kubernetes Manifests
+│   ├── deployment.yaml     # Pod deployments & replicas
+│   ├── service.yaml        # Service exposure
+│   ├── network-policy.yaml # Zero-trust network restrictions
+│   └── pod-security.yaml   # Pod security standards (PSS)
+└── terraform/              # Infrastructure as Code
+    ├── main.tf             # Core infrastructure (EKS/AKS, VPC/VNet)
+    ├── variables.tf        # Input variables
+    └── provider.tf         # Cloud providers config
 ```
 
----
+## ⚙️ CI/CD Workflows (GitHub Actions)
 
-## 🚀 Getting Started
+This project leverages automated **GitHub Actions** pipelines to enforce security and smoothly deploy our changes.
 
-### Prerequisites
-- Python 3.10+
-- Node.js 18+
-
-### Backend Setup
-
-```bash
-cd backend
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python app.py
-```
-
-Backend runs on **http://localhost:5000**
-
-> SQLite database (`expenses.db`) is auto-created on first run.
-
-### Frontend Setup
-
-```bash
-cd frontend
-npm install
-npm start
-```
-
-Frontend runs on **http://localhost:3000**
-
----
-
-## 🔑 Environment Variables
-
-Create `backend/.env`:
-
-```env
-SECRET_KEY=supersecret
-JWT_SECRET_KEY=jwtsecret
-DATABASE_URL=sqlite:///expenses.db
-```
-
-For PostgreSQL:
-```env
-DATABASE_URL=postgresql://user:password@localhost/expenses
-```
-
----
-
-## 📡 API Reference
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/auth/register` | No | Register new user |
-| POST | `/auth/login` | No | Login, returns JWT |
-| GET | `/transactions/` | ✅ JWT | List all transactions |
-| POST | `/transactions/` | ✅ JWT | Add transaction |
-| DELETE | `/transactions/:id` | ✅ JWT | Delete transaction |
-| GET | `/transactions/summary?month=YYYY-MM` | ✅ JWT | Monthly summary |
-
----
-
-## ✅ Features
-
-- 🔐 JWT-based authentication (register & login)
-- 💰 Add income & expense transactions
-- 📋 View all transactions with type badge
-- 📊 Live balance summary (Income − Expense = Balance)
-- 🗑️ Delete transactions
-- 📅 Monthly summary filter
-- 🔒 All transaction routes are JWT protected
-- 🌐 CORS enabled for local dev
-
----
-
-## 🐳 Docker (Optional)
-
-```bash
-# From expense-tracker root
-docker-compose up --build
-```
-
-- Backend: http://localhost:5000
-- Frontend: http://localhost:3000
+| Workflow | Trigger | Description |
+|---|---|---|
+| **SonarQube SAST** (`sonarqube.yml`) | Push / PR | Performs Static Application Security Testing (SAST) using SonarQube to identify code smells, bugs, and security hotspots in both frontend and backend code. |
+| **Snyk SCA** (`snyk-sca.yml`) | Push / PR | Runs Software Composition Analysis (SCA) via Snyk to detect known vulnerabilities in open-source dependencies (e.g., in `package.json` and `requirements.txt`). |
+| **Checkov IaC Scan** (`checkov.yml`) | PR to Main | Scans the `terraform/` directory using Checkov to detect misconfigurations and ensure compliance with best practices before provisioning resources. |
+| **tfsec IaC Scan** (`tfsec.yml`) | PR to Main | A secondary, focused static analysis tool for Terraform code, providing an extra layer of validation against cloud misconfigurations. |
+| **Trivy Container & K8s Scan** (`trivy.yml`) | Post-Build | Scans the built Docker images for CVEs (Common Vulnerabilities and Exposures) and checks Kubernetes manifest files for insecure configurations. |
+| **CodeQL Analysis** (`codeql.yml`) | Scheduled / Push | GitHub's native advanced static analysis engine that queries our codebase for deeply hidden security vulnerabilities across supported languages. |
+| **Deploy Infra** (`deploy-infra.yml`) | Manual (Workflow Dispatch) | Provisions the cloud infrastructure (AWS EKS or Azure AKS) by fully automating the `terraform init`, `plan`, and `apply` steps securely. |
+| **Destroy Infra** (`destroy-infra.yml`) | Manual (Workflow Dispatch) | Cleanly and safely tears down all provisioned cloud resources (`terraform destroy`) to prevent unwanted billing outside of active development windows. |
