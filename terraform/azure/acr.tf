@@ -10,12 +10,10 @@ resource "azurerm_container_registry" "main" {
     type = "SystemAssigned"
   }
 
-  # Enable image scanning
-  quarantine_policy_enabled = true
-  retention_policy_enabled  = true
-  retention_policy_days     = 30
-  trust_policy_enabled      = true
-  export_policy_enabled     = false # prevent exporting images outside ACR
+  # Enable image scanning via quarantine policy
+  quarantine_policy_enabled     = true
+  export_policy_enabled         = false # prevent exporting images outside ACR
+  public_network_access_enabled = false
 
   tags = {
     Environment = var.environment

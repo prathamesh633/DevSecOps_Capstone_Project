@@ -37,7 +37,7 @@ terraform {
   # ---------------------------------------------------------------------------
   backend "azurerm" {
     resource_group_name  = "expense-tracker-tfstate-rg"
-    storage_account_name = "expensetfstate" # replace with your unique name
+    storage_account_name = "expensetfstatepb842"
     container_name       = "tfstate"
     key                  = "azure/expense-tracker/terraform.tfstate"
     # State is encrypted at rest automatically by Azure Blob Storage
