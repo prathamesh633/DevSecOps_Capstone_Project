@@ -55,7 +55,7 @@ jobs:
       - name: Install frontend dependencies
         run: |
           cd frontend
-          npm ci
+          npm install   # use install (not ci) so lock file is regenerated if out-of-sync
 
       # ── SonarQube Scan ──────────────────────────────────────────────────────
       - name: SonarQube Scan

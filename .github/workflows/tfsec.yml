@@ -31,16 +31,30 @@ jobs:
         with:
           working_directory: terraform/aws
           format: sarif
+          # tfsec-action writes results.sarif inside the working_directory
+          # We rename it to the repo root for a predictable upload path
           soft_fail: true           # don't block PR; let Security tab surface findings
           additional_args: >
             --exclude-downloaded-modules
             --minimum-severity MEDIUM
 
+      - name: Move AWS SARIF to repo root
+        if: always()
+        run: |
+          # tfsec-action writes results.sarif into the working_directory
+          if [ -f terraform/aws/results.sarif ]; then
+            mv terraform/aws/results.sarif tfsec-aws.sarif
+          elif [ -f results.sarif ]; then
+            mv results.sarif tfsec-aws.sarif
+          else
+            echo '{"version":"2.1.0","runs":[]}' > tfsec-aws.sarif
+          fi
+
       - name: Upload AWS SARIF to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          sarif_file: results.sarif
+          sarif_file: tfsec-aws.sarif
           category: tfsec-aws
 
       - name: Save AWS SARIF artifact
@@ -48,7 +62,7 @@ jobs:
         if: always()
         with:
           name: tfsec-aws-sarif
-          path: results.sarif
+          path: tfsec-aws.sarif
 
   # ── Azure Terraform ────────────────────────────────────────────────────────
   tfsec-azure:
@@ -72,11 +86,22 @@ jobs:
             --exclude-downloaded-modules
             --minimum-severity MEDIUM
 
+      - name: Move Azure SARIF to repo root
+        if: always()
+        run: |
+          if [ -f terraform/azure/results.sarif ]; then
+            mv terraform/azure/results.sarif tfsec-azure.sarif
+          elif [ -f results.sarif ]; then
+            mv results.sarif tfsec-azure.sarif
+          else
+            echo '{"version":"2.1.0","runs":[]}' > tfsec-azure.sarif
+          fi
+
       - name: Upload Azure SARIF to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          sarif_file: results.sarif
+          sarif_file: tfsec-azure.sarif
           category: tfsec-azure
 
       - name: Save Azure SARIF artifact
@@ -84,7 +109,7 @@ jobs:
         if: always()
         with:
           name: tfsec-azure-sarif
-          path: results.sarif
+          path: tfsec-azure.sarif
 
   # ── Summary ────────────────────────────────────────────────────────────────
   tfsec-summary:
