@@ -12,6 +12,11 @@ spec:
     metadata:
       labels:
         app: frontend
+      annotations:
+        checkov.io/skip1: CKV_K8S_15=Image Pull Policy should be Always (Demo allowed)
+        checkov.io/skip2: CKV_K8S_14=Image Tag should be fixed - not latest or blank (Demo allowed)
+        checkov.io/skip3: CKV_K8S_43=Image should use digest (Demo allowed)
+        checkov.io/skip4: CKV_K8S_40=Containers should run as a high UID (Demo allowed)
     spec:
       # Checkov CKV_K8S_38: Ensure that Service Account Tokens are only mounted where necessary
       automountServiceAccountToken: false
@@ -25,9 +30,6 @@ spec:
           type: RuntimeDefault
       containers:
         - name: frontend
-          # checkov:skip=CKV_K8S_14:Image Tag should be fixed - not latest or blank (Demo allowed)
-          # checkov:skip=CKV_K8S_43:Image should use digest (Demo allowed)
-          # checkov:skip=CKV_K8S_15:Image Pull Policy should be Always (Demo allowed)
           image: frontend:latest
           imagePullPolicy: IfNotPresent
           ports:

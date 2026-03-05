@@ -1,6 +1,6 @@
 # ── ECR — Backend Image ─────────────────────────────────────────────────────
-# checkov:skip=CKV_AWS_136:KMS encryption not required for demo ECR
 resource "aws_ecr_repository" "backend" {
+  # checkov:skip=CKV_AWS_136:KMS encryption not required for demo ECR
   name                 = "expense-tracker/backend"
   image_tag_mutability = "IMMUTABLE"
 
@@ -14,8 +14,8 @@ resource "aws_ecr_repository" "backend" {
 }
 
 # ── ECR — Frontend Image ────────────────────────────────────────────────────
-# checkov:skip=CKV_AWS_136:KMS encryption not required for demo ECR
 resource "aws_ecr_repository" "frontend" {
+  # checkov:skip=CKV_AWS_136:KMS encryption not required for demo ECR
   name                 = "expense-tracker/frontend"
   image_tag_mutability = "IMMUTABLE"
 

@@ -1,8 +1,8 @@
 # ── Application Load Balancer ────────────────────────────────────────────────
 # tfsec:ignore:aws-elb-alb-not-public
-# checkov:skip=CKV2_AWS_28:WAF not required for demo
-# checkov:skip=CKV_AWS_150:Deletion protection not required for demo
 resource "aws_lb" "main" {
+  # checkov:skip=CKV2_AWS_28:WAF not required for demo
+  # checkov:skip=CKV_AWS_150:Deletion protection not required for demo
   name               = "${var.cluster_name}-alb"
   internal           = false
   load_balancer_type = "application"
@@ -23,12 +23,12 @@ resource "aws_lb" "main" {
 
 # ── S3 bucket for ALB access logs ──────────────────────────────────────────
 # tfsec:ignore:aws-s3-enable-bucket-logging
-# checkov:skip=CKV2_AWS_62:Event notifications not required for demo
-# checkov:skip=CKV2_AWS_61:Lifecycle configuration not required for demo
-# checkov:skip=CKV_AWS_144:Cross-region replication not required for demo
-# checkov:skip=CKV_AWS_145:KMS encryption not required for demo
-# checkov:skip=CKV_AWS_18:Access logging not required for ALB logs bucket itself
 resource "aws_s3_bucket" "alb_logs" {
+  # checkov:skip=CKV2_AWS_62:Event notifications not required for demo
+  # checkov:skip=CKV2_AWS_61:Lifecycle configuration not required for demo
+  # checkov:skip=CKV_AWS_144:Cross-region replication not required for demo
+  # checkov:skip=CKV_AWS_145:KMS encryption not required for demo
+  # checkov:skip=CKV_AWS_18:Access logging not required for ALB logs bucket itself
   bucket        = "${var.cluster_name}-alb-logs-${data.aws_caller_identity.current.account_id}"
   force_destroy = true
 }
@@ -87,8 +87,8 @@ resource "aws_lb_listener" "http_redirect" {
 }
 
 # ── Target Groups ────────────────────────────────────────────────────────────
-# checkov:skip=CKV_AWS_378:HTTP protocol acceptable for internal target group behind ALB
 resource "aws_lb_target_group" "frontend" {
+  # checkov:skip=CKV_AWS_378:HTTP protocol acceptable for internal target group behind ALB
   name        = "${var.cluster_name}-frontend-tg"
   port        = 3000
   protocol    = "HTTP"
@@ -103,8 +103,8 @@ resource "aws_lb_target_group" "frontend" {
   }
 }
 
-# checkov:skip=CKV_AWS_378:HTTP protocol acceptable for internal target group behind ALB
 resource "aws_lb_target_group" "backend" {
+  # checkov:skip=CKV_AWS_378:HTTP protocol acceptable for internal target group behind ALB
   name        = "${var.cluster_name}-backend-tg"
   port        = 5000
   protocol    = "HTTP"

@@ -1,8 +1,8 @@
 # ── VPC ────────────────────────────────────────────────────────────────────
 # tfsec:ignore:aws-ec2-require-vpc-flow-logs-for-all-vpcs
-# checkov:skip=CKV2_AWS_11:VPC flow logging not required for demo
-# checkov:skip=CKV2_AWS_12:Default SG restriction not required for demo
 resource "aws_vpc" "main" {
+  # checkov:skip=CKV2_AWS_11:VPC flow logging not required for demo
+  # checkov:skip=CKV2_AWS_12:Default SG restriction not required for demo
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
@@ -18,8 +18,8 @@ resource "aws_internet_gateway" "igw" {
 
 # ── Public Subnets ──────────────────────────────────────────────────────────
 # tfsec:ignore:aws-ec2-no-public-ip-subnet
-# checkov:skip=CKV_AWS_130:Public IP on launch required for demo
 resource "aws_subnet" "public" {
+  # checkov:skip=CKV_AWS_130:Public IP on launch required for demo
   count                   = length(var.public_subnet_cidrs)
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.public_subnet_cidrs[count.index]

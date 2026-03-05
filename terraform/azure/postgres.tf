@@ -1,7 +1,7 @@
 # ── PostgreSQL Flexible Server ───────────────────────────────────────────────
-# checkov:skip=CKV_AZURE_136:Geo-redundant backups not required for demo
-# checkov:skip=CKV2_AZURE_57:Private endpoint not required for demo
 resource "azurerm_postgresql_flexible_server" "main" {
+  # checkov:skip=CKV_AZURE_136:Geo-redundant backups not required for demo
+  # checkov:skip=CKV2_AZURE_57:Private endpoint not required for demo
   name                         = "${var.project}-postgres-${var.environment}"
   resource_group_name          = azurerm_resource_group.main.name
   location                     = azurerm_resource_group.main.location

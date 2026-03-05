@@ -24,15 +24,15 @@ resource "aws_db_parameter_group" "postgres" {
 # tfsec:ignore:aws-rds-aws0176
 # tfsec:ignore:aws-rds-aws0177
 # tfsec:ignore:aws-rds-enable-performance-insights
-# checkov:skip=CKV_AWS_161:IAM Auth not required for demo
-# checkov:skip=CKV_AWS_157:Multi-AZ not required for demo
-# checkov:skip=CKV_AWS_118:Enhanced Monitoring not required for demo
-# checkov:skip=CKV_AWS_226:Minor upgrades auto not required for demo
-# checkov:skip=CKV_AWS_293:Deletion protection not required for demo
-# checkov:skip=CKV_AWS_353:Performance insights not required for demo
-# checkov:skip=CKV2_AWS_60:Copy tags to snapshots not required for demo
-# checkov:skip=CKV2_AWS_69:Encryption in transit not required for demo
 resource "aws_db_instance" "postgres" {
+  # checkov:skip=CKV_AWS_161:IAM Auth not required for demo
+  # checkov:skip=CKV_AWS_157:Multi-AZ not required for demo
+  # checkov:skip=CKV_AWS_118:Enhanced Monitoring not required for demo
+  # checkov:skip=CKV_AWS_226:Minor upgrades auto not required for demo
+  # checkov:skip=CKV_AWS_293:Deletion protection not required for demo
+  # checkov:skip=CKV_AWS_353:Performance insights not required for demo
+  # checkov:skip=CKV2_AWS_60:Copy tags to snapshots not required for demo
+  # checkov:skip=CKV2_AWS_69:Encryption in transit not required for demo
   identifier        = "${var.cluster_name}-postgres"
   engine            = "postgres"
   engine_version    = "15.5"

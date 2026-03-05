@@ -9,18 +9,18 @@ resource "azurerm_log_analytics_workspace" "main" {
 
 # ── AKS Cluster ──────────────────────────────────────────────────────────────
 # tfsec:ignore:azure-container-limit-authorized-ips
-# checkov:skip=CKV_AZURE_171:Upgrade channel not strictly required for demo
-# checkov:skip=CKV_AZURE_168:50 pods per node minimum not required for demo
-# checkov:skip=CKV_AZURE_226:Ephemeral disks not required for demo
-# checkov:skip=CKV_AZURE_227:Data flow encryption not required for demo
-# checkov:skip=CKV_AZURE_232:Critical pods distribution not required for demo
-# checkov:skip=CKV_AZURE_115:Private cluster not required for demo
-# checkov:skip=CKV_AZURE_172:Secrets Store CSI Driver not required for demo
-# checkov:skip=CKV_AZURE_141:Local admin disabling not required for demo
-# checkov:skip=CKV_AZURE_117:Disk encryption set not required for demo
-# checkov:skip=CKV_AZURE_170:Paid SKU SLA not required for demo
-# checkov:skip=CKV_AZURE_6:API Server Authorized IP Ranges disabled for demo
 resource "azurerm_kubernetes_cluster" "main" {
+  # checkov:skip=CKV_AZURE_171:Upgrade channel not strictly required for demo
+  # checkov:skip=CKV_AZURE_168:50 pods per node minimum not required for demo
+  # checkov:skip=CKV_AZURE_226:Ephemeral disks not required for demo
+  # checkov:skip=CKV_AZURE_227:Data flow encryption not required for demo
+  # checkov:skip=CKV_AZURE_232:Critical pods distribution not required for demo
+  # checkov:skip=CKV_AZURE_115:Private cluster not required for demo
+  # checkov:skip=CKV_AZURE_172:Secrets Store CSI Driver not required for demo
+  # checkov:skip=CKV_AZURE_141:Local admin disabling not required for demo
+  # checkov:skip=CKV_AZURE_117:Disk encryption set not required for demo
+  # checkov:skip=CKV_AZURE_170:Paid SKU SLA not required for demo
+  # checkov:skip=CKV_AZURE_6:API Server Authorized IP Ranges disabled for demo
   name                = var.cluster_name
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name

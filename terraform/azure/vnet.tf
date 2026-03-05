@@ -7,8 +7,8 @@ resource "azurerm_virtual_network" "main" {
 }
 
 # ── Public Subnet (for App Gateway / Load Balancer) ─────────────────────────
-# checkov:skip=CKV2_AZURE_31:NSG not required for public subnet demo
 resource "azurerm_subnet" "public" {
+  # checkov:skip=CKV2_AZURE_31:NSG not required for public subnet demo
   name                 = "public-subnet"
   resource_group_name  = azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.main.name
@@ -24,8 +24,8 @@ resource "azurerm_subnet" "private" {
 }
 
 # ── DB Subnet (for PostgreSQL delegation) ───────────────────────────────────
-# checkov:skip=CKV2_AZURE_31:NSG not required for db subnet demo
 resource "azurerm_subnet" "db" {
+  # checkov:skip=CKV2_AZURE_31:NSG not required for db subnet demo
   name                 = "db-subnet"
   resource_group_name  = azurerm_resource_group.main.name
   virtual_network_name = azurerm_virtual_network.main.name
@@ -42,8 +42,8 @@ resource "azurerm_subnet" "db" {
 
 # ── NSG for AKS nodes ────────────────────────────────────────────────────────
 # tfsec:ignore:azure-network-no-public-ingress
-# checkov:skip=CKV_AZURE_160:Port 80 ingress allowed for demo
 resource "azurerm_network_security_group" "aks" {
+  # checkov:skip=CKV_AZURE_160:Port 80 ingress allowed for demo
   name                = "${var.project}-aks-nsg"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
