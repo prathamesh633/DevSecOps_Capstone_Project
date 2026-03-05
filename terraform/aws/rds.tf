@@ -52,9 +52,8 @@ resource "aws_db_instance" "postgres" {
   # High availability
   multi_az = var.environment == "prod" ? true : false
 
-  # Backups
-  backup_retention_period = 7
-  backup_window           = "03:00-04:00"
+  # Backups — set to 0 for AWS Free Tier compatibility
+  backup_retention_period = 0
   maintenance_window      = "Mon:04:00-Mon:05:00"
 
   # Security
