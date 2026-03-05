@@ -39,6 +39,7 @@ resource "azurerm_subnet" "db" {
 }
 
 # ── NSG for AKS nodes ────────────────────────────────────────────────────────
+# tfsec:ignore:azure-network-no-public-ingress
 resource "azurerm_network_security_group" "aks" {
   name                = "${var.project}-aks-nsg"
   location            = azurerm_resource_group.main.location

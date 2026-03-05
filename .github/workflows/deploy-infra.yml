@@ -1,5 +1,6 @@
 name: Deploy Infrastructure
 
+# checkov:skip=CKV_GHA_7: workflow_dispatch inputs are intentional — users must select target cloud provider
 on:
   workflow_dispatch:
     inputs:
@@ -12,6 +13,9 @@ on:
           - aws
           - azure
           - both
+
+# Restrict default token permissions (CKV2_GHA_1)
+permissions: read-all
 
 jobs:
   deploy-aws:

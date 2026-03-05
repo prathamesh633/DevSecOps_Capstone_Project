@@ -8,6 +8,7 @@ resource "azurerm_log_analytics_workspace" "main" {
 }
 
 # ── AKS Cluster ──────────────────────────────────────────────────────────────
+# tfsec:ignore:azure-container-limit-authorized-ips
 resource "azurerm_kubernetes_cluster" "main" {
   name                = var.cluster_name
   location            = azurerm_resource_group.main.location

@@ -1,0 +1,406 @@
+
+Result #1 CRITICAL Cluster allows access from a public CIDR: 0.0.0.0/0. 
+─────────────────────
+  eks.tf:59-64
+─────────────────────
+   54    resource "aws_eks_cluster" "main" {
+   ..  
+   59  ┌   vpc_config {
+   60  │     subnet_ids              = concat(aws_subnet.public[*].id, aws_subnet.private[*].id)
+   61  │     security_group_ids      = [aws_security_group.eks_cluster.id]
+   62  │     endpoint_private_access = true
+   63  │     endpoint_public_access  = true
+   64  └   }
+   ..  
+   71    }
+─────────────────────
+          ID aws-eks-no-public-cluster-access-to-cidr
+      Impact EKS can be accessed from the internet
+  Resolution Don't enable public access to EKS Clusters
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/eks/no-public-cluster-access-to-cidr/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_cluster#vpc_config
+─────────────────────
+
+
+Result #2 CRITICAL Public cluster access is enabled. 
+─────────────────────
+  eks.tf:63
+─────────────────────
+   54    resource "aws_eks_cluster" "main" {
+   ..  
+   63  [     endpoint_public_access  = true (true)
+   ..  
+   71    }
+─────────────────────
+          ID aws-eks-no-public-cluster-access
+      Impact EKS can be access from the internet
+  Resolution Don't enable public access to EKS Clusters
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/eks/no-public-cluster-access/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_cluster#endpoint_public_access
+─────────────────────
+
+
+Result #3 CRITICAL Security group rule allows ingress from public internet. 
+─────────────────────
+  security_groups.tf:11
+─────────────────────
+    2    resource "aws_security_group" "alb" {
+    .  
+   11  [     cidr_blocks = ["0.0.0.0/0"]
+   ..  
+   28    }
+─────────────────────
+          ID aws-ec2-no-public-ingress-sgr
+      Impact Your port exposed to the internet
+  Resolution Set a more restrictive cidr range
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/ec2/no-public-ingress-sgr/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule#cidr_blocks
+─────────────────────
+
+
+Result #4 CRITICAL Security group rule allows ingress from public internet. 
+─────────────────────
+  security_groups.tf:18
+─────────────────────
+    2    resource "aws_security_group" "alb" {
+    .  
+   18  [     cidr_blocks = ["0.0.0.0/0"]
+   ..  
+   28    }
+─────────────────────
+          ID aws-ec2-no-public-ingress-sgr
+      Impact Your port exposed to the internet
+  Resolution Set a more restrictive cidr range
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/ec2/no-public-ingress-sgr/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule#cidr_blocks
+─────────────────────
+
+
+Result #5 CRITICAL Security group rule allows egress to multiple public internet addresses. 
+─────────────────────
+  security_groups.tf:25
+─────────────────────
+    2    resource "aws_security_group" "alb" {
+    .  
+   25  [     cidr_blocks = ["0.0.0.0/0"]
+   ..  
+   28    }
+─────────────────────
+          ID aws-ec2-no-public-egress-sgr
+      Impact Your port is egressing data to the internet
+  Resolution Set a more restrictive cidr range
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/ec2/no-public-egress-sgr/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
+─────────────────────
+
+
+Result #6 CRITICAL Security group rule allows egress to multiple public internet addresses. 
+─────────────────────
+  security_groups.tf:47
+─────────────────────
+   31    resource "aws_security_group" "eks_cluster" {
+   ..  
+   47  [     cidr_blocks = ["0.0.0.0/0"]
+   ..  
+   50    }
+─────────────────────
+          ID aws-ec2-no-public-egress-sgr
+      Impact Your port is egressing data to the internet
+  Resolution Set a more restrictive cidr range
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/ec2/no-public-egress-sgr/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
+─────────────────────
+
+
+Result #7 CRITICAL Security group rule allows egress to multiple public internet addresses. 
+─────────────────────
+  security_groups.tf:76
+─────────────────────
+   53    resource "aws_security_group" "eks_nodes" {
+   ..  
+   76  [     cidr_blocks = ["0.0.0.0/0"]
+   ..  
+   79    }
+─────────────────────
+          ID aws-ec2-no-public-egress-sgr
+      Impact Your port is egressing data to the internet
+  Resolution Set a more restrictive cidr range
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/ec2/no-public-egress-sgr/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
+─────────────────────
+
+
+Result #8 CRITICAL Security group rule allows egress to multiple public internet addresses. 
+─────────────────────
+  security_groups.tf:98
+─────────────────────
+   82    resource "aws_security_group" "rds" {
+   ..  
+   98  [     cidr_blocks = ["0.0.0.0/0"]
+  ...  
+  101    }
+─────────────────────
+          ID aws-ec2-no-public-egress-sgr
+      Impact Your port is egressing data to the internet
+  Resolution Set a more restrictive cidr range
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/ec2/no-public-egress-sgr/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group
+─────────────────────
+
+
+Result #9 HIGH Application load balancer is not set to drop invalid headers. 
+─────────────────────
+  alb.tf:2-18
+─────────────────────
+    2  ┌ resource "aws_lb" "main" {
+    3  │   name               = "${var.cluster_name}-alb"
+    4  │   internal           = false
+    5  │   load_balancer_type = "application"
+    6  │   security_groups    = [aws_security_group.alb.id]
+    7  │   subnets            = aws_subnet.public[*].id
+    8  │ 
+    9  │   enable_deletion_protection = var.environment == "prod" ? true : false
+   10  └ 
+   ..  
+─────────────────────
+          ID aws-elb-drop-invalid-headers
+      Impact Invalid headers being passed through to the target of the load balance may exploit vulnerabilities
+  Resolution Set drop_invalid_header_fields to true
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/elb/drop-invalid-headers/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb#drop_invalid_header_fields
+─────────────────────
+
+
+Result #10 HIGH Bucket does not encrypt data with a customer managed key. 
+─────────────────────
+  alb.tf:31-36
+─────────────────────
+   31    resource "aws_s3_bucket_server_side_encryption_configuration" "alb_logs" {
+   32      bucket = aws_s3_bucket.alb_logs.id
+   33      rule {
+   34        apply_server_side_encryption_by_default { sse_algorithm = "AES256" }
+   35      }
+   36    }
+─────────────────────
+          ID aws-s3-encryption-customer-key
+      Impact Using AWS managed keys does not allow for fine grained control
+  Resolution Enable encryption using customer managed keys
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/s3/encryption-customer-key/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket#enable-default-server-side-encryption
+─────────────────────
+
+
+Result #11 HIGH Load balancer is exposed publicly. 
+─────────────────────
+  alb.tf:4
+─────────────────────
+    2    resource "aws_lb" "main" {
+    .  
+    4  [   internal           = false (false)
+   ..  
+   18    }
+─────────────────────
+          ID aws-elb-alb-not-public
+      Impact The load balancer is exposed on the internet
+  Resolution Switch to an internal load balancer or add a tfsec ignore
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/elb/alb-not-public/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb
+─────────────────────
+
+
+Result #12 HIGH Cluster does not have secret encryption enabled. 
+─────────────────────
+  eks.tf:54-71
+─────────────────────
+   54  ┌ resource "aws_eks_cluster" "main" {
+   55  │   name     = var.cluster_name
+   56  │   version  = var.cluster_version
+   57  │   role_arn = aws_iam_role.eks_cluster.arn
+   58  │ 
+   59  │   vpc_config {
+   60  │     subnet_ids              = concat(aws_subnet.public[*].id, aws_subnet.private[*].id)
+   61  │     security_group_ids      = [aws_security_group.eks_cluster.id]
+   62  └     endpoint_private_access = true
+   ..  
+─────────────────────
+          ID aws-eks-encrypt-secrets
+      Impact EKS secrets could be read if compromised
+  Resolution Enable encryption of EKS secrets
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/eks/encrypt-secrets/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_cluster#encryption_config
+─────────────────────
+
+
+Results #13-14 HIGH Subnet associates public IP address. (2 similar results)
+─────────────────────
+  vpc.tf:22
+─────────────────────
+   17    resource "aws_subnet" "public" {
+   ..  
+   22  [   map_public_ip_on_launch = true (true)
+   ..  
+   29    }
+─────────────────────
+  Individual Causes
+  - vpc.tf:17-29 (aws_subnet.public[0])
+  - vpc.tf:17-29 (aws_subnet.public[1])
+─────────────────────
+          ID aws-ec2-no-public-ip-subnet
+      Impact The instance is publicly accessible
+  Resolution Set the instance to not be publicly accessible
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/ec2/no-public-ip-subnet/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet#map_public_ip_on_launch
+─────────────────────
+
+
+Result #15 MEDIUM Bucket does not have logging enabled 
+─────────────────────
+  alb.tf:21-24
+─────────────────────
+   21    resource "aws_s3_bucket" "alb_logs" {
+   22      bucket        = "${var.cluster_name}-alb-logs-${data.aws_caller_identity.current.account_id}"
+   23      force_destroy = true
+   24    }
+─────────────────────
+          ID aws-s3-enable-bucket-logging
+      Impact There is no way to determine the access to this bucket
+  Resolution Add a logging block to the resource to enable access logging
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/s3/enable-bucket-logging/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket
+─────────────────────
+
+
+Results #16-17 MEDIUM Control plane scheduler logging is not enabled. (2 similar results)
+─────────────────────
+  eks.tf:54-71
+─────────────────────
+   54  ┌ resource "aws_eks_cluster" "main" {
+   55  │   name     = var.cluster_name
+   56  │   version  = var.cluster_version
+   57  │   role_arn = aws_iam_role.eks_cluster.arn
+   58  │ 
+   59  │   vpc_config {
+   60  │     subnet_ids              = concat(aws_subnet.public[*].id, aws_subnet.private[*].id)
+   61  │     security_group_ids      = [aws_security_group.eks_cluster.id]
+   62  └     endpoint_private_access = true
+   ..  
+─────────────────────
+  Individual Causes
+  - eks.tf:54-71 (aws_eks_cluster.main) 2 instances
+─────────────────────
+          ID aws-eks-enable-control-plane-logging
+      Impact Logging provides valuable information about access and usage
+  Resolution Enable logging for the EKS control plane
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/eks/enable-control-plane-logging/
+  - https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_cluster#enabled_cluster_log_types
+─────────────────────
+
+
+Result #18 MEDIUM Instance does not have IAM Authentication enabled 
+─────────────────────
+  rds.tf:24-58
+─────────────────────
+   24  ┌ resource "aws_db_instance" "postgres" {
+   25  │   identifier        = "${var.cluster_name}-postgres"
+   26  │   engine            = "postgres"
+   27  │   engine_version    = "15.5"
+   28  │   instance_class    = var.db_instance_class
+   29  │   allocated_storage = 20
+   30  │   storage_type      = "gp3"
+   31  │   storage_encrypted = true
+   32  └ 
+   ..  
+─────────────────────
+  Rego Package builtin.aws.rds.aws0176
+     Rego Rule deny
+─────────────────────
+
+
+Result #19 MEDIUM Instance does not have Deletion Protection enabled 
+─────────────────────
+  rds.tf:51
+─────────────────────
+   51      deletion_protection       = var.environment == "prod" ? true : false
+─────────────────────
+  Rego Package builtin.aws.rds.aws0177
+     Rego Rule deny
+─────────────────────
+
+
+Result #20 MEDIUM VPC Flow Logs is not enabled for VPC  
+─────────────────────
+  vpc.tf:2-8
+─────────────────────
+    2    resource "aws_vpc" "main" {
+    3      cidr_block           = var.vpc_cidr
+    4      enable_dns_support   = true
+    5      enable_dns_hostnames = true
+    6    
+    7      tags = { Name = "${var.cluster_name}-vpc" }
+    8    }
+─────────────────────
+          ID aws-ec2-require-vpc-flow-logs-for-all-vpcs
+      Impact Without VPC flow logs, you risk not having enough information about network traffic flow to investigate incidents or identify security issues.
+  Resolution Enable flow logs for VPC
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/aws/ec2/require-vpc-flow-logs-for-all-vpcs/
+─────────────────────
+
+
+  timings
+  ──────────────────────────────────────────
+  disk i/o             214.999µs
+  parsing              8.539368ms
+  adaptation           387.185µs
+  checks               22.173629ms
+  total                31.315181ms
+
+  counts
+  ──────────────────────────────────────────
+  modules downloaded   0
+  modules processed    1
+  blocks processed     68
+  files read           9
+
+  results
+  ──────────────────────────────────────────
+  passed               29
+  ignored              18
+  critical             8
+  high                 6
+  medium               6
+  low                  0
+
+  29 passed, 18 ignored, 20 potential problem(s) detected.
+

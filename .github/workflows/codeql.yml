@@ -9,6 +9,9 @@ on:
 #     # Run every Monday at 07:00 UTC for scheduled security sweeps
 #     - cron: '0 7 * * 1'
 
+# Restrict default token permissions — each job overrides with only what it needs (CKV2_GHA_1)
+permissions: read-all
+
 jobs:
   codeql-analysis:
     name: CodeQL Scan (${{ matrix.language }})
@@ -31,15 +34,13 @@ jobs:
 
       # ── CodeQL initialisation ───────────────────────────────────────────────
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
-          # Custom query suites that specifically target the five vulnerability
-          # categories: hardcoded secrets, injection, weak crypto, insecure
+          # Query suites targeting security vulnerabilities:
+          # hardcoded secrets, injection, weak crypto, insecure
           # deserialization, and poor error handling.
-          queries: |
-            security-and-quality,
-            +security-extended
+          queries: security-and-quality,security-extended
           config: |
             query-filters:
               - include:
@@ -53,11 +54,11 @@ jobs:
 
       # ── Auto-build (CodeQL traces compilable languages) ────────────────────
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+        uses: github/codeql-action/autobuild@v4
 
       # ── CodeQL analysis ─────────────────────────────────────────────────────
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           category: /language:${{ matrix.language }}
           # SARIF output enables GitHub Security tab integration

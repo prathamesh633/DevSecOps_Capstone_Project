@@ -15,6 +15,9 @@ on:
       - "terraform/**"
       - "k8s/**"
 
+# Restrict default token permissions — each job overrides with only what it needs (CKV2_GHA_1)
+permissions: read-all
+
 jobs:
   # ── AWS Terraform ─────────────────────────────────────────────────────────
   checkov-aws:
@@ -46,11 +49,11 @@ jobs:
         if: always()
         run: |
           if [ ! -f checkov-aws.sarif ]; then
-            echo '{"version":"2.1.0","runs":[]}' > checkov-aws.sarif
+            echo '{"version":"2.1.0","$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json","runs":[{"tool":{"driver":{"name":"Checkov","rules":[]}},"results":[]}]}' > checkov-aws.sarif
           fi
 
       - name: Upload AWS SARIF to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: checkov-aws.sarif
@@ -91,11 +94,11 @@ jobs:
         if: always()
         run: |
           if [ ! -f checkov-azure.sarif ]; then
-            echo '{"version":"2.1.0","runs":[]}' > checkov-azure.sarif
+            echo '{"version":"2.1.0","$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json","runs":[{"tool":{"driver":{"name":"Checkov","rules":[]}},"results":[]}]}' > checkov-azure.sarif
           fi
 
       - name: Upload Azure SARIF to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: checkov-azure.sarif
@@ -133,11 +136,11 @@ jobs:
         if: always()
         run: |
           if [ ! -f checkov-k8s.sarif ]; then
-            echo '{"version":"2.1.0","runs":[]}' > checkov-k8s.sarif
+            echo '{"version":"2.1.0","$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json","runs":[{"tool":{"driver":{"name":"Checkov","rules":[]}},"results":[]}]}' > checkov-k8s.sarif
           fi
 
       - name: Upload k8s SARIF to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: checkov-k8s.sarif

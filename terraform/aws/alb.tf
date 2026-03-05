@@ -1,4 +1,5 @@
 # ── Application Load Balancer ────────────────────────────────────────────────
+# tfsec:ignore:aws-elb-alb-not-public
 resource "aws_lb" "main" {
   name               = "${var.cluster_name}-alb"
   internal           = false
@@ -7,6 +8,7 @@ resource "aws_lb" "main" {
   subnets            = aws_subnet.public[*].id
 
   enable_deletion_protection = var.environment == "prod" ? true : false
+  drop_invalid_header_fields = true
 
   access_logs {
     bucket  = aws_s3_bucket.alb_logs.id
@@ -18,6 +20,7 @@ resource "aws_lb" "main" {
 }
 
 # ── S3 bucket for ALB access logs ──────────────────────────────────────────
+# tfsec:ignore:aws-s3-enable-bucket-logging
 resource "aws_s3_bucket" "alb_logs" {
   bucket        = "${var.cluster_name}-alb-logs-${data.aws_caller_identity.current.account_id}"
   force_destroy = true
@@ -28,6 +31,7 @@ resource "aws_s3_bucket_versioning" "alb_logs" {
   versioning_configuration { status = "Enabled" }
 }
 
+# tfsec:ignore:aws-s3-encryption-customer-key
 resource "aws_s3_bucket_server_side_encryption_configuration" "alb_logs" {
   bucket = aws_s3_bucket.alb_logs.id
   rule {

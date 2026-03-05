@@ -1,0 +1,92 @@
+
+Result #1 CRITICAL Cluster does not limit API access to specific IP addresses. 
+─────────────────────
+  aks.tf:11-53
+─────────────────────
+   11  ┌ resource "azurerm_kubernetes_cluster" "main" {
+   12  │   name                = var.cluster_name
+   13  │   location            = azurerm_resource_group.main.location
+   14  │   resource_group_name = azurerm_resource_group.main.name
+   15  │   dns_prefix          = var.cluster_name
+   16  │   kubernetes_version  = var.kubernetes_version
+   17  │ 
+   18  │   default_node_pool {
+   19  └     name                = "default"
+   ..  
+─────────────────────
+          ID azure-container-limit-authorized-ips
+      Impact Any IP can interact with the API server
+  Resolution Limit the access to the API server to a limited IP range
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/azure/container/limit-authorized-ips/
+  - https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/kubernetes_cluster#api_server_authorized_ip_ranges
+─────────────────────
+
+
+Result #2 CRITICAL Security group rule allows ingress from public internet. 
+─────────────────────
+  vnet.tf:55
+─────────────────────
+   42    resource "azurerm_network_security_group" "aks" {
+   ..  
+   55  [     source_address_prefix      = "*" ("*")
+   ..  
+   70    }
+─────────────────────
+          ID azure-network-no-public-ingress
+      Impact The port is exposed for ingress from the internet
+  Resolution Set a more restrictive cidr range
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/azure/network/no-public-ingress/
+  - https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_security_rule
+─────────────────────
+
+
+Result #3 CRITICAL Security group rule allows ingress from public internet. 
+─────────────────────
+  vnet.tf:67
+─────────────────────
+   42    resource "azurerm_network_security_group" "aks" {
+   ..  
+   67  [     source_address_prefix      = "*" ("*")
+   ..  
+   70    }
+─────────────────────
+          ID azure-network-no-public-ingress
+      Impact The port is exposed for ingress from the internet
+  Resolution Set a more restrictive cidr range
+
+  More Information
+  - https://aquasecurity.github.io/tfsec/v1.28.14/checks/azure/network/no-public-ingress/
+  - https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_security_rule
+─────────────────────
+
+
+  timings
+  ──────────────────────────────────────────
+  disk i/o             139.384µs
+  parsing              2.180189ms
+  adaptation           124.817µs
+  checks               7.509003ms
+  total                9.953393ms
+
+  counts
+  ──────────────────────────────────────────
+  modules downloaded   0
+  modules processed    1
+  blocks processed     41
+  files read           8
+
+  results
+  ──────────────────────────────────────────
+  passed               8
+  ignored              0
+  critical             3
+  high                 0
+  medium               0
+  low                  0
+
+  8 passed, 3 potential problem(s) detected.
+

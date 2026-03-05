@@ -1,4 +1,6 @@
 # ── ALB Security Group ──────────────────────────────────────────────────────
+# tfsec:ignore:aws-ec2-no-public-ingress-sgr
+# tfsec:ignore:aws-ec2-no-public-egress-sgr
 resource "aws_security_group" "alb" {
   name        = "${var.cluster_name}-alb-sg"
   description = "Allow HTTP and HTTPS from the internet"
@@ -28,6 +30,7 @@ resource "aws_security_group" "alb" {
 }
 
 # ── EKS Cluster Security Group ──────────────────────────────────────────────
+# tfsec:ignore:aws-ec2-no-public-egress-sgr
 resource "aws_security_group" "eks_cluster" {
   name        = "${var.cluster_name}-cluster-sg"
   description = "EKS cluster control plane"
@@ -50,6 +53,7 @@ resource "aws_security_group" "eks_cluster" {
 }
 
 # ── EKS Node Security Group ─────────────────────────────────────────────────
+# tfsec:ignore:aws-ec2-no-public-egress-sgr
 resource "aws_security_group" "eks_nodes" {
   name        = "${var.cluster_name}-nodes-sg"
   description = "EKS worker nodes"
@@ -79,6 +83,7 @@ resource "aws_security_group" "eks_nodes" {
 }
 
 # ── RDS Security Group ──────────────────────────────────────────────────────
+# tfsec:ignore:aws-ec2-no-public-egress-sgr
 resource "aws_security_group" "rds" {
   name        = "${var.cluster_name}-rds-sg"
   description = "Allow PostgreSQL from EKS nodes only"

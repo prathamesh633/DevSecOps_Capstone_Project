@@ -13,6 +13,9 @@ on:
   pull_request:
     branches: [ "test", "main", "master" ]
 
+# Restrict default token permissions — each job overrides with only what it needs (CKV2_GHA_1)
+permissions: read-all
+
 jobs:
   # ── Build & Scan Backend Docker Image ─────────────────────────────────────
   trivy-image-backend:

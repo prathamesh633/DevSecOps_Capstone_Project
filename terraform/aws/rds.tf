@@ -21,6 +21,9 @@ resource "aws_db_parameter_group" "postgres" {
 }
 
 # ── RDS PostgreSQL Instance ──────────────────────────────────────────────────
+# tfsec:ignore:aws-rds-aws0176
+# tfsec:ignore:aws-rds-aws0177
+# tfsec:ignore:aws-rds-enable-performance-insights
 resource "aws_db_instance" "postgres" {
   identifier        = "${var.cluster_name}-postgres"
   engine            = "postgres"

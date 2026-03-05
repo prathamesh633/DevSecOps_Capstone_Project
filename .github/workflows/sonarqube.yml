@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "main", "master", "develop" ]
 
+# Restrict default token permissions (CKV2_GHA_1)
+permissions: read-all
+
 jobs:
   sonarqube-analysis:
     name: SonarQube Scan
@@ -66,7 +69,7 @@ jobs:
         with:
           args: >
             -Dsonar.projectKey=expense-tracker
-            -Dsonar.projectName="Expense Tracker App"
+            -Dsonar.projectName=Expense_Tracker_App
             -Dsonar.sources=backend,frontend/src
             -Dsonar.exclusions=**/node_modules/**,**/venv/**,**/__pycache__/**,**/migrations/**
             -Dsonar.python.version=3.9

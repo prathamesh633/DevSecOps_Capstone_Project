@@ -13,6 +13,9 @@ on:
     paths:
       - "terraform/**"
 
+# Restrict default token permissions — each job overrides with only what it needs (CKV2_GHA_1)
+permissions: read-all
+
 jobs:
   # ── AWS Terraform ─────────────────────────────────────────────────────────
   tfsec-aws:
@@ -34,9 +37,7 @@ jobs:
           # tfsec-action writes results.sarif inside the working_directory
           # We rename it to the repo root for a predictable upload path
           soft_fail: true           # don't block PR; let Security tab surface findings
-          additional_args: >
-            --exclude-downloaded-modules
-            --minimum-severity MEDIUM
+          additional_args: --exclude-downloaded-modules --minimum-severity MEDIUM
 
       - name: Move AWS SARIF to repo root
         if: always()
@@ -47,11 +48,11 @@ jobs:
           elif [ -f results.sarif ]; then
             mv results.sarif tfsec-aws.sarif
           else
-            echo '{"version":"2.1.0","runs":[]}' > tfsec-aws.sarif
+            echo '{"version":"2.1.0","$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json","runs":[{"tool":{"driver":{"name":"tfsec","rules":[]}},"results":[]}]}' > tfsec-aws.sarif
           fi
 
       - name: Upload AWS SARIF to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: tfsec-aws.sarif
@@ -82,9 +83,7 @@ jobs:
           working_directory: terraform/azure
           format: sarif
           soft_fail: true
-          additional_args: >
-            --exclude-downloaded-modules
-            --minimum-severity MEDIUM
+          additional_args: --exclude-downloaded-modules --minimum-severity MEDIUM
 
       - name: Move Azure SARIF to repo root
         if: always()
@@ -94,11 +93,11 @@ jobs:
           elif [ -f results.sarif ]; then
             mv results.sarif tfsec-azure.sarif
           else
-            echo '{"version":"2.1.0","runs":[]}' > tfsec-azure.sarif
+            echo '{"version":"2.1.0","$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json","runs":[{"tool":{"driver":{"name":"tfsec","rules":[]}},"results":[]}]}' > tfsec-azure.sarif
           fi
 
       - name: Upload Azure SARIF to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: tfsec-azure.sarif

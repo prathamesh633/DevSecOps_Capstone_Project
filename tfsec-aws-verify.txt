@@ -1,0 +1,58 @@
+
+Result #1 MEDIUM Instance does not have IAM Authentication enabled 
+─────────────────────
+  rds.tf:27-61
+─────────────────────
+   27  ┌ resource "aws_db_instance" "postgres" {
+   28  │   identifier        = "${var.cluster_name}-postgres"
+   29  │   engine            = "postgres"
+   30  │   engine_version    = "15.5"
+   31  │   instance_class    = var.db_instance_class
+   32  │   allocated_storage = 20
+   33  │   storage_type      = "gp3"
+   34  │   storage_encrypted = true
+   35  └ 
+   ..  
+─────────────────────
+  Rego Package builtin.aws.rds.aws0176
+     Rego Rule deny
+─────────────────────
+
+
+Result #2 MEDIUM Instance does not have Deletion Protection enabled 
+─────────────────────
+  rds.tf:54
+─────────────────────
+   54      deletion_protection       = var.environment == "prod" ? true : false
+─────────────────────
+  Rego Package builtin.aws.rds.aws0177
+     Rego Rule deny
+─────────────────────
+
+
+  timings
+  ──────────────────────────────────────────
+  disk i/o             193.493µs
+  parsing              12.378306ms
+  adaptation           1.029371ms
+  checks               22.173708ms
+  total                35.774878ms
+
+  counts
+  ──────────────────────────────────────────
+  modules downloaded   0
+  modules processed    1
+  blocks processed     68
+  files read           9
+
+  results
+  ──────────────────────────────────────────
+  passed               27
+  ignored              38
+  critical             0
+  high                 0
+  medium               2
+  low                  0
+
+  27 passed, 38 ignored, 2 potential problem(s) detected.
+

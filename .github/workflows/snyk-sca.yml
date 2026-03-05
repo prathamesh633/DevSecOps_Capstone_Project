@@ -11,6 +11,9 @@ on:
   pull_request:
     branches: [ "main", "master", "develop" ]
 
+# Restrict default token permissions — each job overrides with only what it needs (CKV2_GHA_1)
+permissions: read-all
+
 jobs:
   # ── Python Backend ─────────────────────────────────────────────────────────
   snyk-python:
@@ -56,11 +59,11 @@ jobs:
         if: always()
         run: |
           if [ ! -f snyk-python.sarif ]; then
-            echo '{"version":"2.1.0","runs":[]}' > snyk-python.sarif
+            echo '{"version":"2.1.0","$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json","runs":[{"tool":{"driver":{"name":"Snyk","rules":[]}},"results":[]}]}' > snyk-python.sarif
           fi
 
       - name: Upload Python SARIF to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: snyk-python.sarif
@@ -117,11 +120,11 @@ jobs:
         if: always()
         run: |
           if [ ! -f snyk-node.sarif ]; then
-            echo '{"version":"2.1.0","runs":[]}' > snyk-node.sarif
+            echo '{"version":"2.1.0","$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json","runs":[{"tool":{"driver":{"name":"Snyk","rules":[]}},"results":[]}]}' > snyk-node.sarif
           fi
 
       - name: Upload Node SARIF to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: snyk-node.sarif
