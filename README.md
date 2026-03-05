@@ -19,7 +19,7 @@ The core objective of this project is to demonstrate a robust, secure, and autom
 
 ## 🏗️ Architecture & CI/CD Pipeline Flow
 
-![DevSecOps Architecture](architecture_new.png)
+![DevSecOps Architecture](Architecture_Diagram.png)
 
 ## 📁 Repository Structure
 
