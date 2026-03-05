@@ -55,6 +55,10 @@ resource "aws_iam_role_policy_attachment" "ecr_read" {
 # tfsec:ignore:aws-eks-no-public-cluster-access
 # tfsec:ignore:aws-eks-encrypt-secrets
 # tfsec:ignore:aws-eks-enable-control-plane-logging
+# checkov:skip=CKV_AWS_38:Public endpoint required for demo
+# checkov:skip=CKV_AWS_58:Secrets encryption not required for demo
+# checkov:skip=CKV_AWS_37:Control plane logging not required for all types in demo
+# checkov:skip=CKV_AWS_39:Public endpoint disabled not required for demo
 resource "aws_eks_cluster" "main" {
   name     = var.cluster_name
   version  = var.cluster_version

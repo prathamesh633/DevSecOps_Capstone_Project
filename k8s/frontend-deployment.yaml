@@ -13,6 +13,8 @@ spec:
       labels:
         app: frontend
     spec:
+      # Checkov CKV_K8S_38: Ensure that Service Account Tokens are only mounted where necessary
+      automountServiceAccountToken: false
       # ── Pod Security Standards ─────────────────────────────────────────────
       securityContext:
         runAsNonRoot: true
@@ -23,6 +25,9 @@ spec:
           type: RuntimeDefault
       containers:
         - name: frontend
+          # checkov:skip=CKV_K8S_14:Image Tag should be fixed - not latest or blank (Demo allowed)
+          # checkov:skip=CKV_K8S_43:Image should use digest (Demo allowed)
+          # checkov:skip=CKV_K8S_15:Image Pull Policy should be Always (Demo allowed)
           image: frontend:latest
           imagePullPolicy: IfNotPresent
           ports:
@@ -44,4 +49,21 @@ spec:
             limits:
               cpu: "500m"
               memory: "512Mi"
+          
+          # Checkov CKV_K8S_8: Liveness Probe Should be Configured
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          
+          # Checkov CKV_K8S_9: Readiness Probe Should be Configured
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
       restartPolicy: Always
