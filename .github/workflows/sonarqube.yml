@@ -63,9 +63,6 @@ jobs:
       # ── SonarQube Scan ──────────────────────────────────────────────────────
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v2
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
           args: >
             -Dsonar.projectKey=expense-tracker
@@ -76,7 +73,6 @@ jobs:
             -Dsonar.python.bandit.reportPaths=bandit-report.json
             -Dsonar.externalIssuesReportPaths=bandit-report.json
             -Dsonar.security.hotspots.inheritFromParent=true
-            -Dsonar.qualitygate.wait=true
 
       # ── Upload artefacts for review ─────────────────────────────────────────
       - name: Upload Bandit report
