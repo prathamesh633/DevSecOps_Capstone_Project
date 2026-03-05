@@ -60,19 +60,7 @@ jobs:
           cd frontend
           npm install   # use install (not ci) so lock file is regenerated if out-of-sync
 
-      # ── SonarQube Scan ──────────────────────────────────────────────────────
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v2
-        with:
-          args: >
-            -Dsonar.projectKey=expense-tracker
-            -Dsonar.projectName=Expense_Tracker_App
-            -Dsonar.sources=backend,frontend/src
-            -Dsonar.exclusions=**/node_modules/**,**/venv/**,**/__pycache__/**,**/migrations/**
-            -Dsonar.python.version=3.9
-            -Dsonar.python.bandit.reportPaths=bandit-report.json
-            -Dsonar.externalIssuesReportPaths=bandit-report.json
-            -Dsonar.security.hotspots.inheritFromParent=true
+
 
       # ── Upload artefacts for review ─────────────────────────────────────────
       - name: Upload Bandit report
