@@ -37,26 +37,23 @@ jobs:
           directory: terraform/aws
           framework: terraform
           output_format: sarif
-          output_file_path: checkov-aws.sarif
           soft_fail: true              # surface findings without blocking CI
-          skip_check: >
-            CKV_AWS_7,
-            CKV2_AWS_5
+          skip_check: CKV_AWS_7,CKV2_AWS_5
           # CKV_AWS_7 : KMS key rotation — using AWS managed keys (AES256) for simplicity
           # CKV2_AWS_5: SG not attached to resource — resources reference SGs by ID in separate .tf files
 
       - name: Safety-net — create empty SARIF if missing
         if: always()
         run: |
-          if [ ! -f checkov-aws.sarif ]; then
-            echo '{"version":"2.1.0","$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json","runs":[{"tool":{"driver":{"name":"Checkov","rules":[]}},"results":[]}]}' > checkov-aws.sarif
+          if [ ! -f results.sarif ]; then
+            echo '{"version":"2.1.0","$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json","runs":[{"tool":{"driver":{"name":"Checkov","rules":[]}},"results":[]}]}' > results.sarif
           fi
 
       - name: Upload AWS SARIF to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
-          sarif_file: checkov-aws.sarif
+          sarif_file: results.sarif
           category: checkov-aws
 
       - name: Upload AWS Checkov report artifact
@@ -64,7 +61,7 @@ jobs:
         if: always()
         with:
           name: checkov-aws-report
-          path: checkov-aws.sarif
+          path: results.sarif
 
   # ── Azure Terraform ────────────────────────────────────────────────────────
   checkov-azure:
@@ -84,24 +81,22 @@ jobs:
           directory: terraform/azure
           framework: terraform
           output_format: sarif
-          output_file_path: checkov-azure.sarif
           soft_fail: true
-          skip_check: >
-            CKV_AZURE_7
+          skip_check: CKV_AZURE_7
           # CKV_AZURE_7: Ensure AKS cluster is RBAC enabled — already set in aks.tf
 
       - name: Safety-net — create empty SARIF if missing
         if: always()
         run: |
-          if [ ! -f checkov-azure.sarif ]; then
-            echo '{"version":"2.1.0","$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json","runs":[{"tool":{"driver":{"name":"Checkov","rules":[]}},"results":[]}]}' > checkov-azure.sarif
+          if [ ! -f results.sarif ]; then
+            echo '{"version":"2.1.0","$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json","runs":[{"tool":{"driver":{"name":"Checkov","rules":[]}},"results":[]}]}' > results.sarif
           fi
 
       - name: Upload Azure SARIF to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
-          sarif_file: checkov-azure.sarif
+          sarif_file: results.sarif
           category: checkov-azure
 
       - name: Upload Azure Checkov report artifact
@@ -109,7 +104,7 @@ jobs:
         if: always()
         with:
           name: checkov-azure-report
-          path: checkov-azure.sarif
+          path: results.sarif
 
   # ── Kubernetes Manifests ───────────────────────────────────────────────────
   checkov-k8s:
@@ -129,21 +124,20 @@ jobs:
           directory: k8s
           framework: kubernetes
           output_format: sarif
-          output_file_path: checkov-k8s.sarif
           soft_fail: true
 
       - name: Safety-net — create empty SARIF if missing
         if: always()
         run: |
-          if [ ! -f checkov-k8s.sarif ]; then
-            echo '{"version":"2.1.0","$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json","runs":[{"tool":{"driver":{"name":"Checkov","rules":[]}},"results":[]}]}' > checkov-k8s.sarif
+          if [ ! -f results.sarif ]; then
+            echo '{"version":"2.1.0","$schema":"https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json","runs":[{"tool":{"driver":{"name":"Checkov","rules":[]}},"results":[]}]}' > results.sarif
           fi
 
       - name: Upload k8s SARIF to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
-          sarif_file: checkov-k8s.sarif
+          sarif_file: results.sarif
           category: checkov-k8s
 
       - name: Upload k8s Checkov report artifact
@@ -151,7 +145,7 @@ jobs:
         if: always()
         with:
           name: checkov-k8s-report
-          path: checkov-k8s.sarif
+          path: results.sarif
 
   # ── Summary ────────────────────────────────────────────────────────────────
   checkov-summary:
