@@ -70,7 +70,13 @@ jobs:
               mode_args+=("$mode_arg")
             fi
 
+            local nvd_api_key="${{ secrets.NVD_API_KEY }}"
+            if [ -n "$nvd_api_key" ]; then
+              mode_args+=("--nvdApiKey" "$nvd_api_key")
+            fi
+
             docker run --rm \
+              --user "\$(id -u):\$(id -g)" \
               -v "${GITHUB_WORKSPACE}:/src" \
               -v "${GITHUB_WORKSPACE}/.dependency-check-data:/usr/share/dependency-check/data" \
               owasp/dependency-check:latest \
