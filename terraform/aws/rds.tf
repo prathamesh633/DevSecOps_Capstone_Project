@@ -35,7 +35,7 @@ resource "aws_db_instance" "postgres" {
   # checkov:skip=CKV2_AWS_69:Encryption in transit not required for demo
   identifier        = "${var.cluster_name}-postgres"
   engine            = "postgres"
-  engine_version    = "15.5"
+  engine_version    = "15"
   instance_class    = var.db_instance_class
   allocated_storage = 20
   storage_type      = "gp3"

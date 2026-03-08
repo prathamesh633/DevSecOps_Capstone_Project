@@ -96,11 +96,6 @@ resource "aws_eks_node_group" "main" {
     max_unavailable = 1
   }
 
-  remote_access {
-    ec2_ssh_key               = null
-    source_security_group_ids = []
-  }
-
   depends_on = [
     aws_iam_role_policy_attachment.eks_worker_node,
     aws_iam_role_policy_attachment.eks_cni,

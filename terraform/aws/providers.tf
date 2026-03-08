@@ -36,7 +36,8 @@ terraform {
   # (s3:GetObject, s3:PutObject, s3:ListBucket on expense-tracker-tfstate)
   # ---------------------------------------------------------------------------
   backend "s3" {
-    bucket       = "expense-tracker-tfstate-pb842"
+    # Bucket is supplied at init time:
+    # terraform init -backend-config="bucket=<YOUR_BUCKET>"
     key          = "aws/expense-tracker/terraform.tfstate"
     region       = "us-east-1"
     encrypt      = true
