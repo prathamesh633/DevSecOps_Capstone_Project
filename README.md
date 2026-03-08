@@ -29,6 +29,7 @@ expense-tracker/
 │   └── workflows/          # GitHub Actions CI/CD pipelines
 │       ├── sonarqube.yml   # SAST Code Quality scan (SonarQube)
 │       ├── snyk-sca.yml    # SCA Dependency scan (Snyk)
+│       ├── DP-check.yml    # OWASP Dependency-Check scan
 │       ├── checkov.yml     # IaC Security scan (Checkov)
 │       ├── tfsec.yml       # IaC Security scan (tfsec)
 │       ├── trivy.yml       # Container & K8s vulnerability scan
@@ -64,6 +65,7 @@ This project leverages automated **GitHub Actions** pipelines to enforce securit
 |---|---|---|
 | **SonarQube SAST** (`sonarqube.yml`) | Push / PR | Performs Static Application Security Testing (SAST) using SonarQube to identify code smells, bugs, and security hotspots in both frontend and backend code. |
 | **Snyk SCA** (`snyk-sca.yml`) | Push / PR | Runs Software Composition Analysis (SCA) via Snyk to detect known vulnerabilities in open-source dependencies (e.g., in `package.json` and `requirements.txt`). |
+| **OWASP Dependency-Check** (`DP-check.yml`) | Push / PR / Schedule / Dispatch | Scans backend and frontend dependencies for known vulnerabilities using OWASP Dependency-Check, generating and uploading reports as artifacts. |
 | **Checkov IaC Scan** (`checkov.yml`) | PR to Main | Scans the `terraform/` directory using Checkov to detect misconfigurations and ensure compliance with best practices before provisioning resources. |
 | **tfsec IaC Scan** (`tfsec.yml`) | PR to Main | A secondary, focused static analysis tool for Terraform code, providing an extra layer of validation against cloud misconfigurations. |
 | **Trivy Container & K8s Scan** (`trivy.yml`) | Post-Build | Scans the built Docker images for CVEs (Common Vulnerabilities and Exposures) and checks Kubernetes manifest files for insecure configurations. |
