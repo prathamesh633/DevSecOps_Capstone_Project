@@ -6,6 +6,14 @@ on:
   pull_request:
     branches: ["main", "master", "develop"]
   workflow_dispatch:
+    inputs:
+      refresh_db:
+        description: "Refresh vulnerability database before scan"
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    - cron: "0 2 * * *"
 
 permissions: read-all
 
@@ -33,21 +41,30 @@ jobs:
           set -euo pipefail
           mkdir -p reports/dependency-check .dependency-check-data
 
+          UPDATE_ARG="--noupdate"
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            UPDATE_ARG=""
+          fi
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.refresh_db }}" = "true" ]; then
+            UPDATE_ARG=""
+          fi
+
           docker run --rm \
             -v "${GITHUB_WORKSPACE}:/src" \
             -v "${GITHUB_WORKSPACE}/.dependency-check-data:/usr/share/dependency-check/data" \
             owasp/dependency-check:latest \
             --project "${GITHUB_REPOSITORY}" \
-            --scan /src \
+            --scan /src/backend \
+            --scan /src/frontend \
             --out /src/reports/dependency-check \
             --format "HTML" \
             --format "JSON" \
-            --format "XML" \
             --exclude "/src/**/node_modules/**" \
             --exclude "/src/**/.venv/**" \
             --exclude "/src/**/venv/**" \
             --exclude "/src/**/.git/**" \
-            --failOnCVSS 11
+            --failOnCVSS 11 \
+            ${UPDATE_ARG}
 
       - name: Upload Dependency-Check reports
         if: always()
@@ -67,4 +84,6 @@ jobs:
           echo "Files expected:" >> "$GITHUB_STEP_SUMMARY"
           echo "- dependency-check-report.html" >> "$GITHUB_STEP_SUMMARY"
           echo "- dependency-check-report.json" >> "$GITHUB_STEP_SUMMARY"
-          echo "- dependency-check-report.xml" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Fast mode: push/PR runs use cached DB (\`--noupdate\`)." >> "$GITHUB_STEP_SUMMARY"
+          echo "DB refresh runs on daily schedule or manual dispatch with \`refresh_db=true\`." >> "$GITHUB_STEP_SUMMARY"
