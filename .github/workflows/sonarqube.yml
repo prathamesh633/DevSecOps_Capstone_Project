@@ -43,7 +43,8 @@ jobs:
           echo "value=$KEY" >> "$GITHUB_OUTPUT"
 
       - name: Show SonarQube project key in use
-        run: echo "Using SonarQube project key: ${{ steps.sonar_project.outputs.value }}"
+        run: |
+          echo "Using SonarQube project key: ${{ steps.sonar_project.outputs.value }}"
 
       - name: Set up Python
         uses: actions/setup-python@v5
