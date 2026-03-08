@@ -35,8 +35,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-dependency-check-
 
-      - name: Run OWASP Dependency-Check (non-blocking)
-        continue-on-error: true
+      - name: Run OWASP Dependency-Check
         run: |
           set -euo pipefail
           mkdir -p reports/dependency-check .dependency-check-data
@@ -48,6 +47,13 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.refresh_db }}" = "true" ]; then
             UPDATE_ARG=""
           fi
+
+          # First fast-mode run can fail when cache is empty.
+          if [ "$UPDATE_ARG" = "--noupdate" ] && [ -z "$(find .dependency-check-data -mindepth 1 -type f -print -quit)" ]; then
+            echo "Dependency-Check cache is empty; switching to update mode for this run."
+            UPDATE_ARG=""
+          fi
+
           UPDATE_MODE="--update"
           if [ -n "$UPDATE_ARG" ]; then
             UPDATE_MODE="$UPDATE_ARG"
