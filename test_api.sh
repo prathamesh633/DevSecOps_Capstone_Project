@@ -1,5 +1,4 @@
 #!/bin/bash
-
 BASE_URL="http://localhost:5000"
 EMAIL="test@example.com"
 PASSWORD="password123"
