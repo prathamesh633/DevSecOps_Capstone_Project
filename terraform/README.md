@@ -21,7 +21,7 @@ Both configurations store Terraform state **remotely and encrypted** — AWS use
 |----------|---------|---------|
 | **Networking** | VPC | `10.0.0.0/16`, 2 public + 2 private subnets across 2 AZs |
 | **Load Balancer** | ALB | Public-facing, HTTP → HTTPS redirect, access logs to S3 |
-| **Container Orchestration** | EKS | v1.29, managed node group in private subnets, audit logs enabled |
+| **Container Orchestration** | EKS | Version configurable (provider default by default), managed node group in private subnets, audit logs enabled |
 | **Container Registry** | ECR | Immutable tags, scan-on-push, AES256 encryption |
 | **Database** | RDS PostgreSQL 15 | Private subnet, encrypted, Multi-AZ in prod, 7-day backups |
 | **Remote State** | S3 + DynamoDB | AES256 encrypted bucket + DynamoDB lock table |
@@ -30,32 +30,30 @@ Both configurations store Terraform state **remotely and encrypted** — AWS use
 
 **Step 1: Bootstrap remote state** (once only)
 ```bash
-# Create S3 bucket for tfstate
-aws s3api create-bucket --bucket expense-tracker-tfstate --region us-east-1
+# Create S3 bucket for tfstate (must be globally unique)
+aws s3api create-bucket --bucket <YOUR_UNIQUE_TFSTATE_BUCKET> --region us-east-1
 aws s3api put-bucket-versioning \
-  --bucket expense-tracker-tfstate \
+  --bucket <YOUR_UNIQUE_TFSTATE_BUCKET> \
   --versioning-configuration Status=Enabled
 aws s3api put-bucket-encryption \
-  --bucket expense-tracker-tfstate \
+  --bucket <YOUR_UNIQUE_TFSTATE_BUCKET> \
   --server-side-encryption-configuration \
   '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
 
-# Create DynamoDB lock table
-aws dynamodb create-table \
-  --table-name expense-tracker-tfstate-lock \
-  --attribute-definitions AttributeName=LockID,AttributeType=S \
-  --key-schema AttributeName=LockID,KeyType=HASH \
-  --billing-mode PAY_PER_REQUEST \
-  --region us-east-1
+# DynamoDB lock table is optional when using native S3 lockfile mode
 ```
 
 **Step 2: Deploy**
 ```bash
 cd terraform/aws
-terraform init
+terraform init -backend-config="bucket=<YOUR_UNIQUE_TFSTATE_BUCKET>"
 terraform plan -var="db_password=<YOUR_DB_PASSWORD>"
 terraform apply -var="db_password=<YOUR_DB_PASSWORD>"
 ```
+
+For GitHub Actions, set repository secrets:
+- `AWS_TF_STATE_BUCKET`: your S3 state bucket name
+- `TF_VAR_DB_PASSWORD`: RDS master password
 
 **Step 3: Configure kubectl**
 ```bash

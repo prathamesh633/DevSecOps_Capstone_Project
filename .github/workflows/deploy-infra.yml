@@ -17,6 +17,9 @@ on:
 # Restrict default token permissions (CKV2_GHA_1)
 permissions: read-all
 
+env:
+  TF_IN_AUTOMATION: "true"
+
 jobs:
   deploy-aws:
     if: inputs.cloud_provider == 'aws' || inputs.cloud_provider == 'both'
@@ -24,7 +27,7 @@ jobs:
     defaults:
       run:
         working-directory: terraform/aws
-    
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -38,12 +41,24 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.5
+          terraform_wrapper: false
+
+      - name: Validate Required AWS Secrets
+        run: |
+          test -n "${{ secrets.AWS_TF_STATE_BUCKET }}" || (echo "Missing secret: AWS_TF_STATE_BUCKET" && exit 1)
+          test -n "${{ secrets.TF_VAR_DB_PASSWORD }}" || (echo "Missing secret: TF_VAR_DB_PASSWORD" && exit 1)
 
       - name: Terraform Init
-        run: terraform init
+        run: |
+          terraform init -input=false \
+            -backend-config="bucket=${{ secrets.AWS_TF_STATE_BUCKET }}" \
+            -backend-config="key=aws/expense-tracker/terraform.tfstate" \
+            -backend-config="region=us-east-1"
 
       - name: Terraform Apply
-        run: terraform apply -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" -auto-approve
+        run: terraform apply -input=false -var="db_password=${{ secrets.TF_VAR_DB_PASSWORD }}" -auto-approve
 
   deploy-azure:
     if: inputs.cloud_provider == 'azure' || inputs.cloud_provider == 'both'
@@ -64,6 +79,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
+          terraform_version: 1.10.5
           terraform_wrapper: false
 
       - name: Terraform Init
