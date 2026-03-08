@@ -48,6 +48,10 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.refresh_db }}" = "true" ]; then
             UPDATE_ARG=""
           fi
+          UPDATE_MODE="--update"
+          if [ -n "$UPDATE_ARG" ]; then
+            UPDATE_MODE="$UPDATE_ARG"
+          fi
 
           docker run --rm \
             -v "${GITHUB_WORKSPACE}:/src" \
@@ -57,21 +61,31 @@ jobs:
             --scan /src/backend \
             --scan /src/frontend \
             --out /src/reports/dependency-check \
-            --format "HTML" \
-            --format "JSON" \
+            --format "ALL" \
+            --log /src/reports/dependency-check/dependency-check.log \
             --exclude "/src/**/node_modules/**" \
             --exclude "/src/**/.venv/**" \
             --exclude "/src/**/venv/**" \
             --exclude "/src/**/.git/**" \
             --failOnCVSS 11 \
-            ${UPDATE_ARG}
+            ${UPDATE_ARG} | tee reports/dependency-check/dependency-check-console.log
+
+          {
+            echo "scanDateUtc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+            echo "repository=${GITHUB_REPOSITORY}"
+            echo "workflowRunId=${GITHUB_RUN_ID}"
+            echo "commitSha=${GITHUB_SHA}"
+            echo "eventName=${GITHUB_EVENT_NAME}"
+            echo "updateMode=${UPDATE_MODE}"
+          } > reports/dependency-check/scan-metadata.txt
 
       - name: Upload Dependency-Check reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: dependency-check-report
-          path: reports/dependency-check/
+          path: |
+            reports/dependency-check/
           if-no-files-found: warn
 
       - name: Add run summary
@@ -81,9 +95,7 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Reports generated (when scan succeeds) and uploaded as artifact: **dependency-check-report**" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Files expected:" >> "$GITHUB_STEP_SUMMARY"
-          echo "- dependency-check-report.html" >> "$GITHUB_STEP_SUMMARY"
-          echo "- dependency-check-report.json" >> "$GITHUB_STEP_SUMMARY"
+          echo "Artifact includes all generated report formats, scanner logs, and scan metadata." >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Fast mode: push/PR runs use cached DB (\`--noupdate\`)." >> "$GITHUB_STEP_SUMMARY"
           echo "DB refresh runs on daily schedule or manual dispatch with \`refresh_db=true\`." >> "$GITHUB_STEP_SUMMARY"
