@@ -34,17 +34,44 @@ jobs:
         id: sonar_project
         env:
           SONAR_PROJECT_KEY_SECRET: ${{ secrets.SONAR_PROJECT_KEY }}
+          SONAR_PROJECT_KEY_VAR: ${{ vars.SONAR_PROJECT_KEY }}
         run: |
           if [ -n "$SONAR_PROJECT_KEY_SECRET" ]; then
             KEY="$SONAR_PROJECT_KEY_SECRET"
+          elif [ -n "$SONAR_PROJECT_KEY_VAR" ]; then
+            KEY="$SONAR_PROJECT_KEY_VAR"
           else
             KEY="${GITHUB_REPOSITORY//\//_}"
+            echo "::warning::SONAR_PROJECT_KEY is not set. Falling back to repository-derived key: $KEY"
           fi
           echo "value=$KEY" >> "$GITHUB_OUTPUT"
 
       - name: Show SonarQube project key in use
         run: |
           echo "Using SonarQube project key: ${{ steps.sonar_project.outputs.value }}"
+
+      - name: Validate SonarQube project visibility for token
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_PROJECT_KEY: ${{ steps.sonar_project.outputs.value }}
+        run: |
+          set -euo pipefail
+          RESPONSE_FILE="$(mktemp)"
+          HTTP_CODE="$(curl -sS -u "${SONAR_TOKEN}:" -o "$RESPONSE_FILE" -w "%{http_code}" \
+            "${SONAR_HOST_URL}/api/projects/search?projects=${SONAR_PROJECT_KEY}")"
+
+          if [ "$HTTP_CODE" -ne 200 ]; then
+            echo "::error::Unable to query SonarQube API (HTTP $HTTP_CODE). Check SONAR_HOST_URL and SONAR_TOKEN."
+            cat "$RESPONSE_FILE"
+            exit 1
+          fi
+
+          if ! grep -q "\"key\":\"${SONAR_PROJECT_KEY}\"" "$RESPONSE_FILE"; then
+            echo "::error::Project key '${SONAR_PROJECT_KEY}' is not visible to this token."
+            echo "::error::Set SONAR_PROJECT_KEY (repo secret/variable) to an existing SonarQube project key and grant this token 'Execute Analysis' on that project."
+            exit 1
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -91,7 +118,7 @@ jobs:
         run: CI=true npm test -- --watchAll=false --coverage --passWithNoTests
 
       - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
