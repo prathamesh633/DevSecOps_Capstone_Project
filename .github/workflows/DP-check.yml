@@ -1,0 +1,70 @@
+name: DP-check (OWASP Dependency-Check)
+
+on:
+  push:
+    branches: ["main", "master", "develop"]
+  pull_request:
+    branches: ["main", "master", "develop"]
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  dependency-check:
+    name: OWASP Dependency-Check Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Cache Dependency-Check data
+        uses: actions/cache@v4
+        with:
+          path: .dependency-check-data
+          key: ${{ runner.os }}-dependency-check-data
+          restore-keys: |
+            ${{ runner.os }}-dependency-check-
+
+      - name: Run OWASP Dependency-Check (non-blocking)
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          mkdir -p reports/dependency-check .dependency-check-data
+
+          docker run --rm \
+            -v "${GITHUB_WORKSPACE}:/src" \
+            -v "${GITHUB_WORKSPACE}/.dependency-check-data:/usr/share/dependency-check/data" \
+            owasp/dependency-check:latest \
+            --project "${GITHUB_REPOSITORY}" \
+            --scan /src \
+            --out /src/reports/dependency-check \
+            --format "HTML" \
+            --format "JSON" \
+            --format "XML" \
+            --exclude "/src/**/node_modules/**" \
+            --exclude "/src/**/.venv/**" \
+            --exclude "/src/**/venv/**" \
+            --exclude "/src/**/.git/**" \
+            --failOnCVSS 11
+
+      - name: Upload Dependency-Check reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: reports/dependency-check/
+          if-no-files-found: warn
+
+      - name: Add run summary
+        if: always()
+        run: |
+          echo "## OWASP Dependency-Check" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Reports generated (when scan succeeds) and uploaded as artifact: **dependency-check-report**" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Files expected:" >> "$GITHUB_STEP_SUMMARY"
+          echo "- dependency-check-report.html" >> "$GITHUB_STEP_SUMMARY"
+          echo "- dependency-check-report.json" >> "$GITHUB_STEP_SUMMARY"
+          echo "- dependency-check-report.xml" >> "$GITHUB_STEP_SUMMARY"
