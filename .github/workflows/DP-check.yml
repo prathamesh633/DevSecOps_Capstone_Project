@@ -31,7 +31,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .dependency-check-data
-          key: ${{ runner.os }}-dependency-check-data
+          key: ${{ runner.os }}-dependency-check-data-${{ github.run_id }}
           restore-keys: |
             ${{ runner.os }}-dependency-check-
 
@@ -39,6 +39,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p reports/dependency-check .dependency-check-data
+          CONSOLE_LOG="reports/dependency-check/dependency-check-console.log"
 
           UPDATE_ARG="--noupdate"
           if [ "${{ github.event_name }}" = "schedule" ]; then
@@ -59,22 +60,47 @@ jobs:
             UPDATE_MODE="$UPDATE_ARG"
           fi
 
-          docker run --rm \
-            -v "${GITHUB_WORKSPACE}:/src" \
-            -v "${GITHUB_WORKSPACE}/.dependency-check-data:/usr/share/dependency-check/data" \
-            owasp/dependency-check:latest \
-            --project "${GITHUB_REPOSITORY}" \
-            --scan /src/backend \
-            --scan /src/frontend \
-            --out /src/reports/dependency-check \
-            --format "ALL" \
-            --log /src/reports/dependency-check/dependency-check.log \
-            --exclude "/src/**/node_modules/**" \
-            --exclude "/src/**/.venv/**" \
-            --exclude "/src/**/venv/**" \
-            --exclude "/src/**/.git/**" \
-            --failOnCVSS 11 \
-            ${UPDATE_ARG} | tee reports/dependency-check/dependency-check-console.log
+          # Remove stale lock files from cached DB before scanning.
+          find .dependency-check-data -type f \( -name "*.lock" -o -name "*.lck" \) -delete || true
+
+          run_dependency_check() {
+            local mode_arg="${1:-}"
+            local mode_args=()
+            if [ -n "$mode_arg" ]; then
+              mode_args+=("$mode_arg")
+            fi
+
+            docker run --rm \
+              -v "${GITHUB_WORKSPACE}:/src" \
+              -v "${GITHUB_WORKSPACE}/.dependency-check-data:/usr/share/dependency-check/data" \
+              owasp/dependency-check:latest \
+              --project "${GITHUB_REPOSITORY}" \
+              --scan /src/backend \
+              --scan /src/frontend \
+              --out /src/reports/dependency-check \
+              --format "ALL" \
+              --log /src/reports/dependency-check/dependency-check.log \
+              --exclude "/src/**/node_modules/**" \
+              --exclude "/src/**/.venv/**" \
+              --exclude "/src/**/venv/**" \
+              --exclude "/src/**/.git/**" \
+              --failOnCVSS 11 \
+              "${mode_args[@]}"
+          }
+
+          : > "$CONSOLE_LOG"
+          if ! run_dependency_check "$UPDATE_ARG" 2>&1 | tee "$CONSOLE_LOG"; then
+            if grep -Eqi "exclusive lock|No documents exist|fatal errors occurred" "$CONSOLE_LOG"; then
+              echo "Dependency-Check DB cache appears locked/corrupted. Resetting cache and retrying once."
+              rm -rf .dependency-check-data/*
+              mkdir -p .dependency-check-data
+              UPDATE_ARG=""
+              UPDATE_MODE="--update"
+              run_dependency_check "$UPDATE_ARG" 2>&1 | tee -a "$CONSOLE_LOG"
+            else
+              exit 1
+            fi
+          fi
 
           {
             echo "scanDateUtc=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
