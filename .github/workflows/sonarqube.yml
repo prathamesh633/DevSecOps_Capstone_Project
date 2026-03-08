@@ -12,7 +12,6 @@ permissions: read-all
 env:
   TF_IN_AUTOMATION: "true"
   PYTHONUNBUFFERED: "1"
-  SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY != '' && secrets.SONAR_PROJECT_KEY || format('{0}_{1}', github.repository_owner, github.event.repository.name) }}
 
 jobs:
   sonarqube-analysis:
@@ -31,8 +30,20 @@ jobs:
           test -n "${{ secrets.SONAR_TOKEN }}" || (echo "Missing secret: SONAR_TOKEN" && exit 1)
           test -n "${{ secrets.SONAR_HOST_URL }}" || (echo "Missing secret: SONAR_HOST_URL" && exit 1)
 
+      - name: Resolve SonarQube project key
+        id: sonar_project
+        env:
+          SONAR_PROJECT_KEY_SECRET: ${{ secrets.SONAR_PROJECT_KEY }}
+        run: |
+          if [ -n "$SONAR_PROJECT_KEY_SECRET" ]; then
+            KEY="$SONAR_PROJECT_KEY_SECRET"
+          else
+            KEY="${GITHUB_REPOSITORY//\//_}"
+          fi
+          echo "value=$KEY" >> "$GITHUB_OUTPUT"
+
       - name: Show SonarQube project key in use
-        run: echo "Using SonarQube project key: $SONAR_PROJECT_KEY"
+        run: echo "Using SonarQube project key: ${{ steps.sonar_project.outputs.value }}"
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -81,7 +92,7 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
           args: >
-            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
+            -Dsonar.projectKey=${{ steps.sonar_project.outputs.value }}
 
       - name: SonarQube Quality Gate
         uses: SonarSource/sonarqube-quality-gate-action@v1.2.0
