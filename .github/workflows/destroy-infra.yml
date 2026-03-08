@@ -49,6 +49,19 @@ jobs:
         run: |
           test -n "${{ secrets.AWS_TF_STATE_BUCKET }}" || (echo "Missing secret: AWS_TF_STATE_BUCKET" && exit 1)
           test -n "${{ secrets.TF_VAR_DB_PASSWORD }}" || (echo "Missing secret: TF_VAR_DB_PASSWORD" && exit 1)
+          DB_PASSWORD='${{ secrets.TF_VAR_DB_PASSWORD }}'
+          if [ "${#DB_PASSWORD}" -lt 8 ] || [ "${#DB_PASSWORD}" -gt 128 ]; then
+            echo "Invalid TF_VAR_DB_PASSWORD: must be 8-128 characters."
+            exit 1
+          fi
+          if [[ "$DB_PASSWORD" =~ [/@\"\ ] ]]; then
+            echo "Invalid TF_VAR_DB_PASSWORD: must not contain '/', '@', '\"', or spaces."
+            exit 1
+          fi
+          if ! printf '%s' "$DB_PASSWORD" | LC_ALL=C grep -q '^[ -~]*$'; then
+            echo "Invalid TF_VAR_DB_PASSWORD: only printable ASCII characters are allowed."
+            exit 1
+          fi
 
       - name: Terraform Init
         run: |

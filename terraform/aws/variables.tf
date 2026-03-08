@@ -89,6 +89,15 @@ variable "db_password" {
   description = "Master password for RDS — override via TF_VAR_db_password or a secrets manager"
   type        = string
   sensitive   = true
+  validation {
+    condition = (
+      length(var.db_password) >= 8 &&
+      length(var.db_password) <= 128 &&
+      length(regexall("[^[:print:]]", var.db_password)) == 0 &&
+      length(regexall("[/@\" ]", var.db_password)) == 0
+    )
+    error_message = "db_password must be 8-128 printable ASCII characters and must not contain '/', '@', '\"', or spaces."
+  }
 }
 
 variable "db_instance_class" {
