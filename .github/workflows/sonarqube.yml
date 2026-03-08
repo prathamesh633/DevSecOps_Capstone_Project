@@ -2,67 +2,94 @@ name: SonarQube Static Code Analysis
 
 on:
   push:
-    branches: [ "main", "master", "develop" ]
+    branches: ["main", "master", "develop"]
   pull_request:
-    branches: [ "main", "master", "develop" ]
+    branches: ["main", "master", "develop"]
+  workflow_dispatch:
 
-# Restrict default token permissions (CKV2_GHA_1)
 permissions: read-all
+
+env:
+  TF_IN_AUTOMATION: "true"
+  PYTHONUNBUFFERED: "1"
+  SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY != '' && secrets.SONAR_PROJECT_KEY || format('{0}_{1}', github.repository_owner, github.event.repository.name) }}
 
 jobs:
   sonarqube-analysis:
     name: SonarQube Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # Required for SonarQube blame & history tracking
+          fetch-depth: 0
 
-      # ── Python / Backend setup ──────────────────────────────────────────────
+      - name: Validate required SonarQube secrets
+        run: |
+          test -n "${{ secrets.SONAR_TOKEN }}" || (echo "Missing secret: SONAR_TOKEN" && exit 1)
+          test -n "${{ secrets.SONAR_HOST_URL }}" || (echo "Missing secret: SONAR_HOST_URL" && exit 1)
+
+      - name: Show SonarQube project key in use
+        run: echo "Using SonarQube project key: $SONAR_PROJECT_KEY"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: "3.10"
+          cache: "pip"
+          cache-dependency-path: backend/requirements.txt
 
-      - name: Install Python dependencies
+      - name: Install backend dependencies and test tooling
         run: |
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
-          # Install security-focused test tools so coverage includes security paths
-          pip install bandit safety pytest pytest-cov
+          pip install pytest pytest-cov bandit safety
 
-      - name: Run Bandit (SAST – Python)
-        # Detects: hardcoded secrets, injection, weak crypto, insecure deserialization,
-        #          poor error handling in Python code
+      - name: Run backend tests with coverage
         run: |
-          bandit -r backend/ \
-            -f json \
-            -o bandit-report.json \
-            --tests B105,B106,B107,B108,B301,B302,B303,B304,B311,B324,B501,B601,B602,B703 \
-            || true   # Don't fail CI – let SonarQube gate decide
-          echo "Bandit scan complete"
+          pytest backend --cov=backend --cov-report=xml:backend/coverage.xml --cov-report=term-missing || true
 
-      - name: Run Safety (dependency vulnerability check)
+      - name: Run Bandit (non-blocking)
+        run: |
+          bandit -r backend -f json -o bandit-report.json || true
+
+      - name: Run Safety (non-blocking)
         run: |
           safety check -r backend/requirements.txt --json > safety-report.json || true
-          echo "Safety check complete"
 
-      # ── Node / Frontend setup ───────────────────────────────────────────────
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install frontend dependencies
-        run: |
-          cd frontend
-          npm install   # use install (not ci) so lock file is regenerated if out-of-sync
+        working-directory: frontend
+        run: npm ci
 
+      - name: Run frontend tests with coverage
+        working-directory: frontend
+        run: CI=true npm test -- --watchAll=false --coverage --passWithNoTests
 
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
 
-      # ── Upload artefacts for review ─────────────────────────────────────────
+      - name: SonarQube Quality Gate
+        uses: SonarSource/sonarqube-quality-gate-action@v1.2.0
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
       - name: Upload Bandit report
         if: always()
         uses: actions/upload-artifact@v4
