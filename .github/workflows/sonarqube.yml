@@ -136,11 +136,63 @@ jobs:
             -Dsonar.projectKey=${{ steps.sonar_project.outputs.value }}
 
       - name: SonarQube Quality Gate
+        id: sonarqube_quality_gate
         uses: SonarSource/sonarqube-quality-gate-action@v1.2.0
         timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: Create SonarQube scan result file
+        if: always()
+        env:
+          SONAR_PROJECT_KEY: ${{ steps.sonar_project.outputs.value }}
+          QUALITY_GATE_STATUS: ${{ steps.sonarqube_quality_gate.outputs.quality-gate-status }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          REPORT_TASK_FILE=".scannerwork/report-task.txt"
+          OUTPUT_FILE="artifacts/sonarqube-scan-result.json"
+
+          SERVER_URL=""
+          CE_TASK_ID=""
+          DASHBOARD_URL=""
+          ANALYSIS_ID=""
+
+          if [ -f "$REPORT_TASK_FILE" ]; then
+            SERVER_URL="$(grep '^serverUrl=' "$REPORT_TASK_FILE" | cut -d= -f2- || true)"
+            CE_TASK_ID="$(grep '^ceTaskId=' "$REPORT_TASK_FILE" | cut -d= -f2- || true)"
+            DASHBOARD_URL="$(grep '^dashboardUrl=' "$REPORT_TASK_FILE" | cut -d= -f2- || true)"
+            ANALYSIS_ID="$(grep '^analysisId=' "$REPORT_TASK_FILE" | cut -d= -f2- || true)"
+          fi
+
+          QUALITY_GATE_STATUS="${QUALITY_GATE_STATUS:-unknown}"
+          SCAN_DATE_UTC="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+          cat > "$OUTPUT_FILE" <<EOF
+          {
+            "scanDateUtc": "$SCAN_DATE_UTC",
+            "repository": "${GITHUB_REPOSITORY}",
+            "workflowRunId": "${GITHUB_RUN_ID}",
+            "commitSha": "${GITHUB_SHA}",
+            "projectKey": "${SONAR_PROJECT_KEY}",
+            "qualityGateStatus": "${QUALITY_GATE_STATUS}",
+            "serverUrl": "${SERVER_URL}",
+            "ceTaskId": "${CE_TASK_ID}",
+            "analysisId": "${ANALYSIS_ID}",
+            "dashboardUrl": "${DASHBOARD_URL}"
+          }
+          EOF
+
+      - name: Upload SonarQube scan artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonarqube-scan-result
+          path: |
+            artifacts/sonarqube-scan-result.json
+            .scannerwork/report-task.txt
+          if-no-files-found: warn
 
       - name: Upload Bandit report
         if: always()
