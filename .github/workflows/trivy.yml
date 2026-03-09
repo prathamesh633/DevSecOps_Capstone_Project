@@ -9,9 +9,9 @@ name: Trivy Security Scan
 
 on:
   push:
-    branches: [ "test", "main", "master" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "test", "main", "master" ]
+    branches: ["main"]
 
 # Restrict default token permissions — each job overrides with only what it needs (CKV2_GHA_1)
 permissions: read-all

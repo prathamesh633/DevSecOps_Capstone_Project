@@ -7,9 +7,9 @@ name: Snyk Software Composition Analysis (SCA)
 
 on:
   push:
-    branches: [ "main", "master", "develop" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "main", "master", "develop" ]
+    branches: [ "main" ]
 
 # Restrict default token permissions — each job overrides with only what it needs (CKV2_GHA_1)
 permissions: read-all

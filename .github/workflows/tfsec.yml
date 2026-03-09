@@ -5,11 +5,11 @@ name: tfsec IaC Security Scan
 
 on:
   push:
-    branches: [ "main", "master", "develop" ]
+    branches: [ "main" ]
     paths:
       - "terraform/**"
   pull_request:
-    branches: [ "main", "master", "develop" ]
+    branches: [ "main" ]
     paths:
       - "terraform/**"
 

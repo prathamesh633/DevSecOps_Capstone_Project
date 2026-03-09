@@ -5,12 +5,12 @@ name: Checkov IaC Security Scan
 
 on:
   push:
-    branches: [ "main", "master", "develop" ]
+    branches: [ "main" ]
     paths:
       - "terraform/**"
       - "k8s/**"
   pull_request:
-    branches: [ "main", "master", "develop" ]
+    branches: [ "main" ]
     paths:
       - "terraform/**"
       - "k8s/**"

@@ -2,9 +2,9 @@ name: SonarQube Static Code Analysis
 
 on:
   push:
-    branches: ["main", "master", "develop"]
+    branches: ["main" ]
   pull_request:
-    branches: ["main", "master", "develop"]
+    branches: ["main" ]
   workflow_dispatch:
 
 permissions: read-all
